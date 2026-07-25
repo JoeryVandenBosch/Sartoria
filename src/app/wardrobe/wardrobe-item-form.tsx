@@ -4,11 +4,11 @@ import { useActionState } from "react";
 
 import { wardrobeCategories } from "@/modules/wardrobe/domain/wardrobe-item";
 
+import { createWardrobeItemAction } from "./actions";
 import {
-  createWardrobeItemAction,
   initialWardrobeItemFormState,
   type WardrobeItemFormState,
-} from "./actions";
+} from "./form-state";
 
 function fieldError(state: WardrobeItemFormState, field: string): string | undefined {
   return state.fieldErrors[field]?.[0];
