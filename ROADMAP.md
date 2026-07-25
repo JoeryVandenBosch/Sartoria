@@ -134,13 +134,34 @@ Exit criteria:
 - lint, strict types, 65 unit/application tests, production build, and lifecycle E2E are green;
 - independent Security and Privacy review is recorded.
 
-Status: implementation complete and validated in CI; review evidence, production migration execution, and release approval remain pending before merge.
+Status: implementation complete, security-reviewed, merged, and validated in CI; production migration execution and release approval remain pending.
 
 ## Phase 5 — Explainable recommendations
 
-- provider-neutral AI gateway;
-- structured and schema-validated outputs;
-- source item references, reasoning, exclusions, confidence, correction, rejection, and fallback.
+- provider-neutral recommendation gateway;
+- versioned, structured, and schema-validated outputs;
+- owner-scoped minimal context with measurement-consent enforcement;
+- source-item references, reasoning, exclusions, confidence, and provenance;
+- deterministic saved-outfit and wardrobe-first fallback;
+- correction, rejection, expiry, deletion, and private history;
+- bounded HTTPS transport and fail-closed provider configuration.
+
+Exit criteria:
+
+- every request is explicitly initiated and owner identity is resolved server-side;
+- provider context excludes account identity, credentials, private notes, media data, and unrelated history;
+- measurements are included only with explicit recommendation consent;
+- every returned item identifier is verified against the supplied owner-scoped available set;
+- malformed, duplicate, unknown, low-confidence, failed, and timed-out provider results activate fallback;
+- provider requests and responses are capped at 64 KiB and production endpoints require HTTPS;
+- PostgreSQL recommendation persistence enables and forces RLS;
+- users can inspect provenance and confidence, correct, reject, and delete results;
+- raw hidden reasoning is never stored;
+- local development remains deterministic without external infrastructure;
+- lint, strict types, 75 unit/application tests, production build, and 6 browser flows are green;
+- Architecture, Security, Privacy, and Product review is recorded.
+
+Status: implementation complete, reviewed, and validated in CI; provider approval, production migration, egress controls, secret management, deployed isolation tests, retention approval, and release approval remain pending.
 
 ## Phase 6 — Planning and insights
 
@@ -150,4 +171,4 @@ Status: implementation complete and validated in CI; review evidence, production
 
 ## Delivery rule
 
-Complete one reviewable vertical slice at a time. Do not introduce recommendation AI before wardrobe facts, ownership, privacy, and deterministic workflows are reliable.
+Complete one reviewable vertical slice at a time. External providers must remain optional, bounded, explainable, and unable to compromise deterministic core workflows.

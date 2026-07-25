@@ -26,12 +26,12 @@ All coding agents begin with `AGENTS.md`, route execution through `AI_OPERATIONS
 - PostgreSQL persistence through repository interfaces
 - Better Auth behind a provider-neutral current-user boundary
 - Quarantine-first private object storage for wardrobe imagery
-- Provider-neutral AI integration layer
+- Provider-neutral recommendation integration with deterministic fallback
 - Responsive, accessible premium interface
 
 ## Delivery status
 
-The engineering foundation, wardrobe item vertical slice, production identity boundary, PostgreSQL persistence, private wardrobe media, owner-scoped style profile, deterministic manual outfit composition, and private outfit lifecycle are security-reviewed and validated.
+The engineering foundation, wardrobe item vertical slice, production identity boundary, PostgreSQL persistence, private wardrobe media, owner-scoped style profile, deterministic manual outfit composition, private outfit lifecycle, and explainable recommendation foundation are reviewed and validated.
 
 Private media includes owner-scoped metadata, direct quarantine upload policies, storage verification, binary type detection, streaming malware-scanning boundaries, protected worker dispatch, short-lived read URLs, deterministic development adapters, and deletion propagation.
 
@@ -41,11 +41,13 @@ Manual outfits include owner-verified wardrobe membership, private occasion and 
 
 Outfit lifecycle adds revision-safe editing and confirmed deletion, explicit date-only private wear events, factual wear-count and last-worn views, individual history correction, cascade deletion, and forced-RLS PostgreSQL persistence. Sartoria does not infer wear from location, calendars, images, page activity, or background tracking.
 
-Managed PostgreSQL, object storage, queue, scanner, secret storage, production migration execution, cross-user deployment verification, backup-retention verification, and explicit production release approval remain pending external deployment work.
+Explainable recommendations add an explicit private request flow, a provider-neutral gateway, versioned structured output, owner-scoped context minimisation, measurement-consent enforcement, exact item-reference validation, confidence gating, deterministic saved-outfit and wardrobe-first fallback, provenance, exclusions, correction, rejection, expiry, deletion, forced-RLS persistence, and accessible evidence views. Raw hidden reasoning is never stored.
 
-Local development deliberately uses explicit development identity, in-memory persistence, private development media storage, and signature-only media validation. Production modes fail closed when required database, authentication, storage, queue, worker, or scanner configuration is absent.
+Managed PostgreSQL, object storage, queue, scanner, recommendation provider approval, egress controls, secret storage, production migration execution, cross-user deployment verification, retention approval, backup-deletion verification, and explicit production release approval remain pending external deployment work.
 
-The next product slice is a provider-neutral, schema-validated, explainable recommendation foundation with a deterministic fallback and no autonomous purchasing behaviour.
+Local development deliberately uses explicit development identity, in-memory persistence, private development media storage, signature-only media validation, and deterministic recommendation fallback. Production modes fail closed when required database, authentication, storage, queue, worker, scanner, or approved-provider configuration is absent.
+
+The next product slice is Phase 6 planning and factual insights: occasion and travel planning, packing lists, climate context, wardrobe coverage, underuse, duplication, gaps, cost-per-wear, and purchase-impact analysis.
 
 ## Development
 
@@ -62,7 +64,7 @@ npm run validate
 npm run test:e2e
 ```
 
-Database setup and migration instructions live in `migrations/README.md`. Private media deployment guidance lives in `docs/operations/private-media.md`.
+Database setup and migration instructions live in `migrations/README.md`. Private media deployment guidance lives in `docs/operations/private-media.md`. Recommendation provider, fallback, rollback, monitoring, and incident guidance lives in `docs/operations/explainable-recommendations.md`.
 
 ## Documentation
 
