@@ -69,7 +69,7 @@ Exit criteria:
 - lint, strict types, tests, production build, and private-media E2E are green;
 - independent Security and Privacy review is recorded.
 
-Status: implementation and validation in progress; production storage, queue, scanner, and release approval remain external deployment work.
+Status: implementation complete, security-reviewed, and validated in CI; production storage, queue, scanner, infrastructure verification, and release approval remain pending.
 
 ## Phase 3 — Profile and preferences
 
