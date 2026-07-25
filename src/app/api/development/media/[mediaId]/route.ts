@@ -24,7 +24,9 @@ export async function GET(_request: Request, context: RouteContext): Promise<Nex
     return NextResponse.json({ error: "Media not found." }, { status: 404 });
   }
 
-  return new NextResponse(object.bytes, {
+  const body = Uint8Array.from(object.bytes).buffer;
+
+  return new NextResponse(body, {
     status: 200,
     headers: {
       "cache-control": "private, no-store",
