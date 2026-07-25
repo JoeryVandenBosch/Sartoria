@@ -161,13 +161,47 @@ Exit criteria:
 - lint, strict types, 75 unit/application tests, production build, and 6 browser flows are green;
 - Architecture, Security, Privacy, and Product review is recorded.
 
-Status: implementation complete, reviewed, and validated in CI; provider approval, production migration, egress controls, secret management, deployed isolation tests, retention approval, and release approval remain pending.
+Status: implementation complete, reviewed, merged, and validated in CI; provider approval, production migration, egress controls, secret management, deployed isolation tests, retention approval, and release approval remain pending.
 
 ## Phase 6 — Planning and insights
 
-- occasion and travel planning;
-- packing lists and climate context;
-- duplication, underuse, coverage, gaps, cost-per-wear, and purchase-impact insights.
+### Phase 6A — Deterministic travel planning and packing
+
+- date-only owner-scoped travel plans;
+- optional broad destination labels;
+- manual climate expectation, activity contexts, and laundry access;
+- deterministic category targets and wardrobe-grounded packing preview;
+- user-controlled final item selection;
+- coverage warnings without fabricated items;
+- private list, detail, and revision-safe deletion;
+- no weather, calendar, precise-location, booking, or AI dependency.
+
+Exit criteria:
+
+- every plan is explicitly created and owner identity is resolved server-side;
+- dates are valid, date-only, ordered, and limited to sixty days;
+- destination, notes, activities, warnings, and packing membership are bounded;
+- preview uses only current-owner items with status `owned`;
+- final selection is reverified for owner and availability before persistence;
+- the same inputs and wardrobe state produce the same ordered suggestion;
+- missing category coverage produces text warnings and never fabricated items;
+- PostgreSQL plan and membership tables use owner-inclusive foreign keys and forced RLS;
+- local development remains deterministic without external infrastructure;
+- lint, strict types, domain/application tests, production build, and complete browser flow are green;
+- Architecture, Security, Privacy, and Product review is recorded.
+
+Status: implementation complete, reviewed, and validated in CI; production migration, deployed isolation, logging, performance, retention, backup, restore, and release approval remain pending.
+
+### Phase 6B — Factual wardrobe insights
+
+- duplication and near-duplication indicators;
+- underuse and wear-frequency summaries;
+- category coverage and explainable gaps;
+- cost-per-wear where user-provided cost data exists;
+- purchase-impact analysis before adding a wish-list item;
+- deterministic calculations with source facts and correction paths.
+
+Status: not started.
 
 ## Delivery rule
 
