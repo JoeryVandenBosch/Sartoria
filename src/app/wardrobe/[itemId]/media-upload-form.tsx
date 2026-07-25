@@ -6,6 +6,7 @@ import { useRef, useState, type FormEvent } from "react";
 import {
   allowedWardrobeMediaTypes,
   maximumWardrobeMediaBytes,
+  type WardrobeMediaType,
 } from "@/modules/media/domain/wardrobe-media";
 
 type InitiationResponse = Readonly<{
@@ -34,7 +35,7 @@ export function MediaUploadForm({ wardrobeItemId }: Readonly<{ wardrobeItemId: s
       return;
     }
 
-    if (!allowedWardrobeMediaTypes.includes(file.type as never)) {
+    if (!allowedWardrobeMediaTypes.includes(file.type as WardrobeMediaType)) {
       setMessage("Choose a JPEG, PNG, WebP, HEIC, or HEIF image.");
       return;
     }
