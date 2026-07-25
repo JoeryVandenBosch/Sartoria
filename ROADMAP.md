@@ -77,6 +77,20 @@ Status: implementation complete, security-reviewed, and validated in CI; product
 - user-controlled corrections;
 - privacy controls and data export foundations.
 
+Exit criteria:
+
+- all profile reads, writes, exports, and resets are owner-scoped;
+- PostgreSQL row-level security is enabled and forced;
+- stale writes and resets fail through optimistic revision checks;
+- measurements are optional and excluded from recommendation data without explicit consent;
+- preferred and avoided signals cannot conflict;
+- the user can save, revise, export, and reset the profile;
+- local development remains deterministic without external infrastructure;
+- lint, strict types, unit/application tests, production build, and profile E2E are green;
+- independent Security and Privacy review is recorded.
+
+Status: implementation complete, security-reviewed, and validated in CI; production migration execution and release approval remain pending.
+
 ## Phase 4 — Outfit composition
 
 - manual outfit creation;
