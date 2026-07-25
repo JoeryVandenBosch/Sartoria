@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getDevelopmentCurrentUserId } from "@/lib/auth/development-current-user";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { getWardrobeItemForOwner } from "@/modules/wardrobe/application/query-wardrobe-items";
-import { developmentWardrobeRepository } from "@/modules/wardrobe/infrastructure/development-wardrobe-store";
+import { getWardrobeRepository } from "@/modules/wardrobe/infrastructure/wardrobe-repository";
 
 type WardrobeItemPageProps = Readonly<{
   params: Promise<{ itemId: string }>;
@@ -23,8 +23,8 @@ function label(value: string): string {
 
 export default async function WardrobeItemPage({ params }: WardrobeItemPageProps) {
   const { itemId } = await params;
-  const ownerId = getDevelopmentCurrentUserId();
-  const item = await getWardrobeItemForOwner(itemId, ownerId, developmentWardrobeRepository);
+  const ownerId = await getCurrentUserId();
+  const item = await getWardrobeItemForOwner(itemId, ownerId, getWardrobeRepository());
 
   if (!item) {
     notFound();
