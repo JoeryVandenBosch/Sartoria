@@ -47,7 +47,7 @@ Exit criteria:
 - lint, type checking, tests, build, and end-to-end checks are green;
 - independent security and privacy review is recorded.
 
-Status: in progress.
+Status: implementation complete and security-reviewed; managed infrastructure provisioning and production release approval remain pending.
 
 ## Phase 2 — Private media
 
