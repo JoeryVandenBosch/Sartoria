@@ -42,12 +42,20 @@ try {
     }
 
     const sql = await readFile(resolve(migrationsDirectory, filename), "utf8");
-    await client.query(sql);
-    await client.query(
-      "INSERT INTO sartoria_schema_migrations (filename) VALUES ($1)",
-      [filename],
-    );
-    console.log(`Applied: ${filename}`);
+
+    try {
+      await client.query("BEGIN");
+      await client.query(sql);
+      await client.query(
+        "INSERT INTO sartoria_schema_migrations (filename) VALUES ($1)",
+        [filename],
+      );
+      await client.query("COMMIT");
+      console.log(`Applied: ${filename}`);
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    }
   }
 } finally {
   await client.end();
