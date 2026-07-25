@@ -1,0 +1,8 @@
+---
+description: Apply Sartoria AIFramework governance to all work
+alwaysApply: true
+---
+
+Read `AGENTS.md`, `AI_AGENTS.md`, `CLAUDE.md`, `VISION.md`, `ARCHITECTURE.md`, active ADRs, and relevant product specifications before editing.
+
+The repository is the source of truth. Preserve brand, privacy, accessibility, modular architecture, and explainable recommendation boundaries. Implement complete vertical slices with tests and documentation. Require independent review for high-risk work.
