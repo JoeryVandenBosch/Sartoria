@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "canonicalEntryPoint": "AGENTS.md",
+  "canonicalContracts": [
+    "AI_AGENTS.md",
+    "CLAUDE.md",
+    ".ai/agents/registry.yaml"
+  ],
+  "adapters": [
+    {
+      "tool": "codex-chatgpt",
+      "path": "AGENTS.md",
+      "requiredReferences": ["AI_AGENTS.md", "CLAUDE.md"]
+    },
+    {
+      "tool": "claude-code",
+      "path": "CLAUDE.md",
+      "requiredReferences": ["AGENTS.md", "AI_AGENTS.md"]
+    },
+    {
+      "tool": "gemini",
+      "path": "GEMINI.md",
+      "requiredReferences": ["AGENTS.md", "AI_AGENTS.md"]
+    },
+    {
+      "tool": "github-copilot",
+      "path": ".github/copilot-instructions.md",
+      "requiredReferences": ["AGENTS.md", "AI_AGENTS.md"]
+    },
+    {
+      "tool": "cursor",
+      "path": ".cursor/rules/sartoria.mdc",
+      "requiredReferences": ["AGENTS.md", "AI_AGENTS.md"]
+    },
+    {
+      "tool": "windsurf",
+      "path": ".windsurfrules",
+      "requiredReferences": ["AGENTS.md", "AI_AGENTS.md"]
+    },
+    {
+      "tool": "replit",
+      "path": "replit.md",
+      "requiredReferences": ["AGENTS.md", "AI_AGENTS.md"]
+    }
+  ]
+}
