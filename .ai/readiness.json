@@ -9,20 +9,21 @@
   "commands": {
     "bootstrap": "npm install",
     "build": "npm run build",
-    "test": "npm test",
+    "test": "npm test && npm run test:e2e",
     "lint": "npm run lint && npm run typecheck",
     "validate": "npm run validate"
   },
   "boundaries": {
     "sourceRoots": ["src"],
     "testRoots": ["tests"],
-    "generatedPaths": [".next", "coverage", "playwright-report"],
+    "generatedPaths": [".next", "coverage", "playwright-report", "test-results"],
     "protectedPaths": [
       ".github/workflows",
       ".ai",
-      ".aiframework",
+      "AI_OPERATIONS",
       "docs/architecture/decisions",
       "SECURITY.md",
+      "src/lib/auth",
       "src/modules/identity",
       "src/modules/media",
       "src/modules/recommendations"
@@ -33,9 +34,10 @@
       "lint",
       "typecheck",
       "unit-tests",
-      "integration-tests",
+      "application-tests",
+      "e2e-smoke-test",
       "build",
-      "aiframework-validation"
+      "aiframework-governance"
     ],
     "coveragePolicy": "Changed domain behaviour and critical privacy, authorisation, recommendation, and media paths require automated verification.",
     "securityScanning": [
@@ -50,6 +52,7 @@
     "defaultLevel": 2,
     "highRiskPaths": [
       ".github/workflows",
+      "AI_OPERATIONS",
       "migrations",
       "infrastructure",
       "src/modules/identity",
