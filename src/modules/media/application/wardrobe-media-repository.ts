@@ -11,5 +11,4 @@ export interface WardrobeMediaRepository {
     wardrobeItemId: string,
     ownerId: string,
   ): Promise<readonly WardrobeMedia[]>;
-  findNextPendingScan(): Promise<WardrobeMedia | null>;
 }
