@@ -113,3 +113,48 @@ test("saves, exports, reloads, and resets a private style profile", async ({ pag
   await expect(page.getByText("No private style profile has been saved yet.")).toBeVisible();
   await expect(page.getByLabel("Fit preference")).toHaveValue("regular");
 });
+
+test("creates and opens a deterministic manual outfit", async ({ page }, testInfo) => {
+  const marker = `${Date.now()}-${testInfo.retry}`;
+  const blazerName = `Outfit blazer ${marker}`;
+  const trouserName = `Outfit trousers ${marker}`;
+  const outfitName = `Dinner composition ${marker}`;
+
+  await page.goto("/wardrobe");
+
+  await page.getByLabel("Item name").fill(blazerName);
+  await page.getByLabel("Category").selectOption("tailoring");
+  await page.getByLabel("Primary colour").fill("Navy");
+  await page.getByLabel("Brand").fill("Gran Sasso");
+  await page.getByRole("button", { name: "Add to wardrobe" }).click();
+  await expect(page.getByText(`${blazerName} was added to your wardrobe.`)).toBeVisible();
+
+  await page.getByLabel("Item name").fill(trouserName);
+  await page.getByLabel("Category").selectOption("trousers");
+  await page.getByLabel("Primary colour").fill("Deep navy");
+  await page.getByLabel("Brand").fill("Sartoria test");
+  await page.getByRole("button", { name: "Add to wardrobe" }).click();
+  await expect(page.getByText(`${trouserName} was added to your wardrobe.`)).toBeVisible();
+
+  await page.getByRole("link", { name: "Outfits", exact: true }).click();
+  await expect(page).toHaveURL(/\/outfits$/);
+  await expect(page.getByRole("heading", { name: "Compose with what you own." })).toBeVisible();
+
+  await page.getByLabel("Outfit name").fill(outfitName);
+  await page.getByLabel("Occasion").fill("Dinner");
+  await page.getByLabel("Private styling notes").fill("Keep the silhouette tonal and restrained.");
+  await page.locator("label", { hasText: blazerName }).getByRole("checkbox").check();
+  await page.locator("label", { hasText: trouserName }).getByRole("checkbox").check();
+  await expect(page.getByText("2 items selected")).toBeVisible();
+
+  await page.getByRole("button", { name: "Save private outfit" }).click();
+  await expect(page).toHaveURL(/\/outfits\/[^/]+$/);
+  await expect(page.getByRole("heading", { name: outfitName })).toBeVisible();
+  await expect(page.getByRole("heading", { name: blazerName })).toBeVisible();
+  await expect(page.getByRole("heading", { name: trouserName })).toBeVisible();
+  await expect(page.getByText("Keep the silhouette tonal and restrained.")).toBeVisible();
+  await expect(page.getByText("Manual composition")).toBeVisible();
+
+  await page.getByRole("link", { name: "Back to outfits" }).click();
+  await expect(page.getByRole("heading", { name: outfitName })).toBeVisible();
+});
