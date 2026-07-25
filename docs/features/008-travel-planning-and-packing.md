@@ -1,6 +1,6 @@
 # Feature 008 — Travel Planning and Packing Lists
 
-Status: implementation ready  
+Status: implementation complete, reviewed, and validated in CI  
 Risk: 2 — private owner-scoped date, destination-label, activity, and wardrobe-selection data
 
 ## User outcome
@@ -110,8 +110,19 @@ A signed-in user can create a private trip plan, receive a deterministic packing
 - strict TypeScript passes;
 - domain, date, packing-rule, ownership, persistence, and transport tests pass;
 - production build passes;
-- Chromium end-to-end preview, adjust, save, detail, list, and delete flow passes;
-- Architecture, Security, Privacy, and Product review is recorded before merge.
+- Chromium end-to-end preview, adjust, save, detail, list, reopen, and delete flow passes;
+- Architecture, Security, Privacy, and Product review is recorded.
+
+## Production release gates
+
+- approved migration applied;
+- runtime role and forced RLS verified;
+- deployed two-user isolation tests passed;
+- invalid, stale, archived, wish-list, duplicate, missing, and cross-owner submissions tested;
+- private-field log and metadata redaction verified;
+- production-like wardrobe performance approved;
+- retention, deletion, backup, restore, and source-item behaviour approved;
+- explicit Architecture, Security, Privacy, and Product release approval recorded.
 
 ## Rollback
 
