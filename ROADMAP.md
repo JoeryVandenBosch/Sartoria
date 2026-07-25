@@ -111,17 +111,30 @@ Exit criteria:
 - lint, strict types, 54 unit/application tests, production build, and outfit E2E are green;
 - independent Security and Privacy review is recorded.
 
-Status: implementation complete and validated in CI; review evidence, production migration execution, and release approval remain pending before merge.
+Status: implementation complete, security-reviewed, merged, and validated in CI; production migration execution and release approval remain pending.
 
 ### Phase 4B — Outfit lifecycle and wear history
 
-- edit and delete outfit experiences;
+- revision-safe outfit editing and deletion;
 - intentional source-item archive behaviour;
-- wear-event recording;
-- last-worn and wear-count views;
-- privacy-safe history correction and deletion.
+- explicit date-only wear-event recording;
+- factual last-worn and wear-count views;
+- privacy-safe history correction and cascade deletion.
 
-Status: not started.
+Exit criteria:
+
+- edit and delete operations are owner-scoped and revision-protected;
+- edited compositions revalidate all wardrobe memberships;
+- archived items remain factual on existing views but cannot enter a new revision;
+- wear events are explicit, date-only, non-future, and owner-scoped;
+- no calendar, location, precise time, or automatic tracking is collected;
+- users can remove individual events and delete the outfit with its history;
+- PostgreSQL wear history uses an owner-inclusive cascade foreign key and forced RLS;
+- local development remains deterministic without external infrastructure;
+- lint, strict types, 65 unit/application tests, production build, and lifecycle E2E are green;
+- independent Security and Privacy review is recorded.
+
+Status: implementation complete and validated in CI; review evidence, production migration execution, and release approval remain pending before merge.
 
 ## Phase 5 — Explainable recommendations
 
