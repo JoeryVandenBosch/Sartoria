@@ -30,22 +30,46 @@ jobs:
         run: npm install --no-audit --no-fund
 
       - name: Lint
-        run: npm run lint
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run lint 2>&1 | tee validation-lint.log
 
       - name: Type check
-        run: npm run typecheck
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run typecheck 2>&1 | tee validation-typecheck.log
 
       - name: Unit and application tests
-        run: npm test
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee validation-tests.log
 
       - name: Production build
-        run: npm run build
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee validation-build.log
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
       - name: End-to-end smoke test
-        run: npm run test:e2e
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run test:e2e 2>&1 | tee validation-e2e.log
+
+      - name: Upload validation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-diagnostics-${{ github.sha }}
+          path: validation-*.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Upload Playwright report on failure
         if: failure()
