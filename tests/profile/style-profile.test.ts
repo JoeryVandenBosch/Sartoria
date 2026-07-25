@@ -91,7 +91,7 @@ describe("style profile", () => {
         { ...preferences, avoidedBrands: ["gran sasso"] },
         new Date("2026-07-25T18:00:00.000Z"),
       ),
-    ).toThrowError("A brand cannot be both preferred and avoided: gran sasso");
+    ).toThrowError("A brand cannot be both preferred and avoided: Gran Sasso");
   });
 
   it("rejects invalid measurements and excessive style directions", () => {
