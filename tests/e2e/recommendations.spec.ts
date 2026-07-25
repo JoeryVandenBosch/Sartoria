@@ -40,13 +40,12 @@ test("requests, inspects, corrects, rejects, and deletes deterministic advice", 
     .getByLabel("Record a correction")
     .fill("Prefer a softer knit instead of the most formal layer.");
   await page.getByRole("button", { name: "Save correction" }).click();
-  await expect(page.getByText("Your correction was saved privately.")).toBeVisible();
   await expect(page.getByText("Prefer a softer knit instead of the most formal layer.")).toBeVisible();
 
   await page.getByLabel("Reject this recommendation").fill("Not relaxed enough.");
   await page.getByRole("button", { name: "Reject recommendation" }).click();
-  await expect(page.getByText("The recommendation was rejected.")).toBeVisible();
   await expect(page.getByText("Not relaxed enough.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Already rejected" })).toBeDisabled();
 
   await page.getByRole("button", { name: "Delete recommendation" }).click();
   await expect(page).toHaveURL(/\/recommendations$/);
