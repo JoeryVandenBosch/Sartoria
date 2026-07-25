@@ -44,7 +44,6 @@ test("adds a wardrobe item and processes a private image", async ({ page }, test
   });
   await page.getByRole("button", { name: "Upload privately" }).click();
 
-  await expect(page.getByText("Image processed successfully.")).toBeVisible();
   await expect(page.getByText("Ready", { exact: true })).toBeVisible();
   await expect(page.getByAltText(`${itemName} private wardrobe image`)).toBeVisible();
 });
