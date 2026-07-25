@@ -7,7 +7,10 @@ import {
   type ObjectIdentifier,
   type ServerSideEncryption,
 } from "@aws-sdk/client-s3";
-import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
+import {
+  createPresignedPost,
+  type PresignedPostOptions,
+} from "@aws-sdk/s3-presigned-post";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 import type {
@@ -65,6 +68,15 @@ function copySource(bucket: string, key: string): string {
   return `/${encodeURIComponent(bucket)}/${encodedKey}`;
 }
 
+function isAsyncIterable(value: unknown): value is AsyncIterable<Uint8Array> {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      Symbol.asyncIterator in value &&
+      typeof (value as { [Symbol.asyncIterator]?: unknown })[Symbol.asyncIterator] === "function",
+  );
+}
+
 export class S3MediaObjectStore implements MediaObjectStore {
   constructor(
     private readonly client: S3Client,
@@ -86,6 +98,17 @@ export class S3MediaObjectStore implements MediaObjectStore {
     const encryptionFields = this.configuration.serverSideEncryption
       ? { "x-amz-server-side-encryption": this.configuration.serverSideEncryption }
       : {};
+    const conditions: NonNullable<PresignedPostOptions["Conditions"]> = [
+      ["content-length-range", 1, input.maximumBytes],
+      { "Content-Type": input.declaredContentType },
+      { "x-amz-meta-media-id": input.mediaId },
+    ];
+
+    if (this.configuration.serverSideEncryption) {
+      conditions.push({
+        "x-amz-server-side-encryption": this.configuration.serverSideEncryption,
+      });
+    }
 
     const policy = await createPresignedPost(this.client, {
       Bucket: this.configuration.bucket,
@@ -96,12 +119,7 @@ export class S3MediaObjectStore implements MediaObjectStore {
         "x-amz-meta-media-id": input.mediaId,
         ...encryptionFields,
       },
-      Conditions: [
-        ["content-length-range", 1, input.maximumBytes],
-        ["eq", "$Content-Type", input.declaredContentType],
-        ["eq", "$x-amz-meta-media-id", input.mediaId],
-        ...Object.entries(encryptionFields).map(([field, value]) => ["eq", `$${field}`, value]),
-      ],
+      Conditions: conditions,
     });
 
     return {
@@ -155,6 +173,21 @@ export class S3MediaObjectStore implements MediaObjectStore {
     }
 
     return result.Body.transformToByteArray();
+  }
+
+  async streamObject(key: string): Promise<AsyncIterable<Uint8Array>> {
+    const result = await this.client.send(
+      new GetObjectCommand({
+        Bucket: this.configuration.bucket,
+        Key: key,
+      }),
+    );
+
+    if (!isAsyncIterable(result.Body)) {
+      throw new Error("Object storage did not return a streamable media body.");
+    }
+
+    return result.Body;
   }
 
   async promoteQuarantineObject(input: Readonly<{
