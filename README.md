@@ -25,17 +25,21 @@ All coding agents begin with `AGENTS.md`, route execution through `AI_OPERATIONS
 - Modular monolith with explicit domain boundaries
 - PostgreSQL persistence through repository interfaces
 - Better Auth behind a provider-neutral current-user boundary
-- Private object storage for wardrobe imagery
+- Quarantine-first private object storage for wardrobe imagery
 - Provider-neutral AI integration layer
 - Responsive, accessible premium interface
 
 ## Delivery status
 
-The engineering foundation, first wardrobe item vertical slice, production identity boundary, and PostgreSQL persistence foundation are implemented, security-reviewed, and validated. Managed infrastructure provisioning and explicit production release approval remain pending.
+The engineering foundation, wardrobe item vertical slice, production identity boundary, PostgreSQL persistence, and private wardrobe media implementation are security-reviewed and validated.
 
-Local development deliberately uses explicit development identity and in-memory persistence adapters. Production modes fail closed when required database and authentication configuration is absent.
+Private media includes owner-scoped metadata, direct quarantine upload policies, storage verification, binary type detection, streaming malware-scanning boundaries, protected worker dispatch, short-lived read URLs, deterministic development adapters, and deletion propagation.
 
-The next product slice is private wardrobe media.
+Managed PostgreSQL, object storage, queue, scanner, secret storage, cross-user deployment verification, and explicit production release approval remain pending external deployment work.
+
+Local development deliberately uses explicit development identity, in-memory persistence, private development media storage, and signature-only media validation. Production modes fail closed when required database, authentication, storage, queue, worker, or scanner configuration is absent.
+
+The next product slice is profile and preference capture.
 
 ## Development
 
@@ -52,7 +56,7 @@ npm run validate
 npm run test:e2e
 ```
 
-Database setup and migration instructions live in `migrations/README.md`.
+Database setup and migration instructions live in `migrations/README.md`. Private media deployment guidance lives in `docs/operations/private-media.md`.
 
 ## Documentation
 
@@ -66,6 +70,8 @@ Database setup and migration instructions live in `migrations/README.md`.
 - `docs/product/` — product and brand specifications
 - `docs/features/` — acceptance-ready vertical slices
 - `docs/architecture/decisions/` — architecture decision records
+- `docs/security/` — threat models and independent reviews
+- `docs/operations/` — deployment and incident runbooks
 
 ## License
 

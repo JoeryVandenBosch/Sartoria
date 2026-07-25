@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { CrownMark } from "@/components/brand/crown-mark";
 
 import "./globals.css";
+import "./media.css";
 
 export const metadata: Metadata = {
   title: {
@@ -20,7 +21,7 @@ type RootLayoutProps = Readonly<{
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en">
+    <html data-scroll-behavior="smooth" lang="en">
       <body>
         <a className="skip-link" href="#main-content">
           Skip to content

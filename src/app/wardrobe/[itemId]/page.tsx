@@ -3,8 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getCurrentUserId } from "@/lib/auth/current-user";
+import { listWardrobeMediaForOwner } from "@/modules/media/application/query-wardrobe-media";
+import {
+  getMediaObjectStore,
+  getWardrobeMediaRepository,
+} from "@/modules/media/infrastructure/media-services";
+import type { WardrobeMediaType } from "@/modules/media/domain/wardrobe-media";
 import { getWardrobeItemForOwner } from "@/modules/wardrobe/application/query-wardrobe-items";
 import { getWardrobeRepository } from "@/modules/wardrobe/infrastructure/wardrobe-repository";
+
+import { MediaDeleteButton } from "./media-delete-button";
+import { MediaUploadForm } from "./media-upload-form";
 
 type WardrobeItemPageProps = Readonly<{
   params: Promise<{ itemId: string }>;
@@ -23,6 +32,10 @@ function label(value: string): string {
     .join(" ");
 }
 
+function browserDisplayable(contentType: WardrobeMediaType | null): boolean {
+  return contentType === "image/jpeg" || contentType === "image/png" || contentType === "image/webp";
+}
+
 export default async function WardrobeItemPage({ params }: WardrobeItemPageProps) {
   const { itemId } = await params;
   const ownerId = await getCurrentUserId();
@@ -32,6 +45,18 @@ export default async function WardrobeItemPage({ params }: WardrobeItemPageProps
     notFound();
   }
 
+  const media = await listWardrobeMediaForOwner(item.id, ownerId, {
+    mediaRepository: getWardrobeMediaRepository(),
+    objectStore: getMediaObjectStore(),
+    now: () => new Date(),
+  });
+  const cover = media.find(
+    (view) =>
+      view.media.status === "ready" &&
+      Boolean(view.readUrl) &&
+      browserDisplayable(view.media.detectedContentType),
+  );
+
   return (
     <div className="page-frame item-detail-page">
       <Link className="back-link" href="/wardrobe">
@@ -39,8 +64,14 @@ export default async function WardrobeItemPage({ params }: WardrobeItemPageProps
       </Link>
 
       <article className="item-detail-layout">
-        <div className="item-detail-visual" aria-hidden="true">
-          <span>{item.name.slice(0, 1).toUpperCase()}</span>
+        <div className="item-detail-visual">
+          {cover?.readUrl ? (
+            // Short-lived, owner-authorised object-store URL. Next Image optimisation is intentionally bypassed.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img alt={`${item.name} wardrobe item`} src={cover.readUrl} />
+          ) : (
+            <span aria-hidden="true">{item.name.slice(0, 1).toUpperCase()}</span>
+          )}
         </div>
         <div className="item-detail-copy">
           <div className="eyebrow">{label(item.category)}</div>
@@ -73,6 +104,63 @@ export default async function WardrobeItemPage({ params }: WardrobeItemPageProps
           </section>
         </div>
       </article>
+
+      <section aria-labelledby="private-media-title" className="private-media-section">
+        <div className="section-heading-row">
+          <div>
+            <div className="eyebrow">Private gallery</div>
+            <h2 id="private-media-title">Wardrobe images</h2>
+          </div>
+          <span className="item-count">
+            {media.length} {media.length === 1 ? "image" : "images"}
+          </span>
+        </div>
+
+        {media.length === 0 ? (
+          <div className="empty-state">
+            <span aria-hidden="true" className="empty-state-number">
+              02
+            </span>
+            <div>
+              <h3>No private images yet.</h3>
+              <p>Add an original image below. Sartoria will keep it quarantined until validation completes.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="media-grid">
+            {media.map((view) => (
+              <article className="media-card" key={view.media.id}>
+                <div className="media-card-preview">
+                  {view.readUrl && browserDisplayable(view.media.detectedContentType) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img alt={`${item.name} private wardrobe image`} src={view.readUrl} />
+                  ) : (
+                    <span>{label(view.media.status)}</span>
+                  )}
+                </div>
+                <div className="media-card-copy">
+                  <div>
+                    <span className={`media-status media-status-${view.media.status}`}>
+                      {label(view.media.status)}
+                    </span>
+                    <p>{view.media.originalFilename}</p>
+                    {view.media.status === "ready" &&
+                    !browserDisplayable(view.media.detectedContentType) ? (
+                      <small>Securely stored. Browser display conversion is planned.</small>
+                    ) : null}
+                    {view.media.status === "rejected" ? (
+                      <small>The upload did not pass secure validation.</small>
+                    ) : null}
+                  </div>
+                  <MediaDeleteButton mediaId={view.media.id} />
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <MediaUploadForm wardrobeItemId={item.id} />
     </div>
   );
 }
