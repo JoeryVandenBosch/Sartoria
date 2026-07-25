@@ -2,10 +2,17 @@ version: 1
 policy:
   source_of_truth: repository
   shared_contract: AI_AGENTS.md
+  operations_manual: AI_OPERATIONS/AI_PROJECT_MANAGER.md
   require_independent_review_for_high_risk: true
   require_repository_inspection: true
   require_validation_evidence: true
+  require_self_review: true
 agents:
+  ai-project-manager:
+    definition: AI_AGENTS.md#ai-project-manager
+    operating_manual: AI_OPERATIONS/AI_PROJECT_MANAGER.md
+    produces_changes: false
+    may_approve_own_work: false
   product:
     definition: AI_AGENTS.md#product-agent
     produces_changes: true
@@ -61,6 +68,9 @@ risk:
     - production-access
     - security-control-bypass
     - schema-migration
+    - consent
+    - export
+    - deletion
   mandatory_reviewers:
     - reviewer
     - security-privacy
