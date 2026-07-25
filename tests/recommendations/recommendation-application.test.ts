@@ -66,12 +66,12 @@ function profile(useMeasurementsForRecommendations: boolean): StyleProfile {
     fitPreference: "tailored",
     climateProfile: "mixed",
     recommendationMode: "wardrobe-first",
-    styleDirections: Object.freeze(["italian-smart-casual"]),
-    preferredColours: Object.freeze(["navy", "white"]),
-    avoidedColours: Object.freeze(["orange"]),
-    preferredBrands: Object.freeze(["Gran Sasso"]),
-    avoidedBrands: Object.freeze([]),
-    excludedMaterials: Object.freeze(["fur"]),
+    styleDirections: ["italian-smart-casual"] as const,
+    preferredColours: ["navy", "white"] as const,
+    avoidedColours: ["orange"] as const,
+    preferredBrands: ["Gran Sasso"] as const,
+    avoidedBrands: [] as const,
+    excludedMaterials: ["fur"] as const,
     measurements: Object.freeze({
       heightCm: 178,
       chestCm: 103,
@@ -133,7 +133,9 @@ describe("recommendation application", () => {
       "blazer-1",
       "trousers-1",
     ]);
-    expect(await deps.recommendationRepository.findByIdForOwner("recommendation-1", "owner-2")).toBeNull();
+    expect(
+      await deps.recommendationRepository.findByIdForOwner("recommendation-1", "owner-2"),
+    ).toBeNull();
   });
 
   it("falls back when provider output references another owner's item", async () => {
@@ -179,20 +181,32 @@ describe("recommendation application", () => {
   });
 
   it("excludes measurements from provider context until consent is enabled", async () => {
-    let captured: RecommendationGatewayInput | null = null;
-    const withoutConsent = await dependencies(provider(validProviderOutput, (input) => (captured = input)));
+    const captured: { value: RecommendationGatewayInput | null } = { value: null };
+    const withoutConsent = await dependencies(
+      provider(validProviderOutput, (input) => {
+        captured.value = input;
+      }),
+    );
     await generateWardrobeRecommendation(
       { ownerId: "owner-1", occasion: "Dinner", notes: null },
       withoutConsent,
     );
-    expect(captured?.profile?.measurements).toBeNull();
+    expect(captured.value?.profile?.measurements).toBeNull();
 
-    const withConsent = await dependencies(provider(validProviderOutput, (input) => (captured = input)), true);
+    const withConsent = await dependencies(
+      provider(validProviderOutput, (input) => {
+        captured.value = input;
+      }),
+      true,
+    );
     await generateWardrobeRecommendation(
       { ownerId: "owner-1", occasion: "Dinner", notes: null },
       withConsent,
     );
-    expect(captured?.profile?.measurements).toMatchObject({ heightCm: 178, shoeSizeEu: 42 });
+    expect(captured.value?.profile?.measurements).toMatchObject({
+      heightCm: 178,
+      shoeSizeEu: 42,
+    });
   });
 
   it("records owner-scoped correction and rejection", async () => {
@@ -208,7 +222,10 @@ describe("recommendation application", () => {
         expectedRevision: 1,
         correction: "Prefer the white sneakers.",
       },
-      { repository: deps.recommendationRepository, now: () => new Date("2026-07-25T22:00:00.000Z") },
+      {
+        repository: deps.recommendationRepository,
+        now: () => new Date("2026-07-25T22:00:00.000Z"),
+      },
     );
     const rejected = await rejectRecommendation(
       {
@@ -217,11 +234,16 @@ describe("recommendation application", () => {
         expectedRevision: corrected.revision,
         reason: "Too formal.",
       },
-      { repository: deps.recommendationRepository, now: () => new Date("2026-07-25T23:00:00.000Z") },
+      {
+        repository: deps.recommendationRepository,
+        now: () => new Date("2026-07-25T23:00:00.000Z"),
+      },
     );
 
     expect(rejected.status).toBe("rejected");
     expect(rejected.correction).toBe("Prefer the white sneakers.");
-    expect(await deps.recommendationRepository.findByIdForOwner(recommendation.id, "owner-2")).toBeNull();
+    expect(
+      await deps.recommendationRepository.findByIdForOwner(recommendation.id, "owner-2"),
+    ).toBeNull();
   });
 });
