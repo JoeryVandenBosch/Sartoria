@@ -62,8 +62,8 @@ jobs:
           set -o pipefail
           npm run test:e2e 2>&1 | tee validation-e2e.log
 
-      - name: Upload validation diagnostics
-        if: always()
+      - name: Upload validation diagnostics on failure
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: validation-diagnostics-${{ github.sha }}

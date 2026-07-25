@@ -16,12 +16,15 @@
 /docs/features/ @JoeryVandenBosch
 /docs/architecture/decisions/ @JoeryVandenBosch
 
-# Security, identity, media, and recommendations
+# Security, identity, persistence, media, and recommendations
 /SECURITY.md @JoeryVandenBosch
 /src/lib/auth/ @JoeryVandenBosch
+/src/lib/database/ @JoeryVandenBosch
 /src/modules/identity/ @JoeryVandenBosch
 /src/modules/media/ @JoeryVandenBosch
 /src/modules/recommendations/ @JoeryVandenBosch
+/migrations/ @JoeryVandenBosch
+/scripts/migrate.mjs @JoeryVandenBosch
 
 # Build and delivery
 /.github/workflows/ @JoeryVandenBosch

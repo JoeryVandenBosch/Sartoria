@@ -10,6 +10,8 @@ Exit criteria:
 - architecture, security, privacy, accessibility, and observability foundations are documented;
 - the first vertical slice has acceptance criteria and an ADR-backed implementation plan.
 
+Status: complete.
+
 ## Phase 1 — Wardrobe item foundation
 
 Deliver the first complete vertical slice: add and view a wardrobe item.
@@ -25,6 +27,27 @@ Scope:
 - deterministic behaviour without AI;
 - unit, integration, and accessibility tests;
 - privacy-safe observability.
+
+Status: complete and validated in CI.
+
+## Phase 1.5 — Production identity and persistence
+
+- PostgreSQL connection and migration foundation;
+- durable wardrobe repository adapter;
+- Better Auth server integration;
+- provider-neutral current-user boundary;
+- owner-scoped queries and PostgreSQL row-level security;
+- production fail-closed configuration;
+- deployment, rollback, and operational guidance.
+
+Exit criteria:
+
+- local development remains deterministic without external infrastructure;
+- production cannot use development identity or in-memory persistence;
+- lint, type checking, tests, build, and end-to-end checks are green;
+- independent security and privacy review is recorded.
+
+Status: implementation complete and security-reviewed; managed infrastructure provisioning and production release approval remain pending.
 
 ## Phase 2 — Private media
 

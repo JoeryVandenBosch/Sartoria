@@ -14,7 +14,7 @@
     "validate": "npm run validate"
   },
   "boundaries": {
-    "sourceRoots": ["src"],
+    "sourceRoots": ["src", "scripts", "migrations"],
     "testRoots": ["tests"],
     "generatedPaths": [".next", "coverage", "playwright-report", "test-results"],
     "protectedPaths": [
@@ -22,8 +22,10 @@
       ".ai",
       "AI_OPERATIONS",
       "docs/architecture/decisions",
+      "migrations",
       "SECURITY.md",
       "src/lib/auth",
+      "src/lib/database",
       "src/modules/identity",
       "src/modules/media",
       "src/modules/recommendations"
@@ -39,11 +41,12 @@
       "build",
       "aiframework-governance"
     ],
-    "coveragePolicy": "Changed domain behaviour and critical privacy, authorisation, recommendation, and media paths require automated verification.",
+    "coveragePolicy": "Changed domain behaviour and critical privacy, authorisation, persistence, recommendation, and media paths require automated verification.",
     "securityScanning": [
       "dependency review",
       "secret scanning",
       "static analysis",
+      "database ownership isolation",
       "upload validation",
       "AI output schema validation"
     ]
@@ -59,6 +62,7 @@
       "src/modules/media",
       "src/modules/recommendations",
       "src/lib/auth",
+      "src/lib/database",
       "src/lib/ai"
     ],
     "humanApprovalLevels": [3, 4]

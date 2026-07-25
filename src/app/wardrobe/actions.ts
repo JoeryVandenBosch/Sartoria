@@ -4,12 +4,9 @@ import { randomUUID } from "node:crypto";
 
 import { revalidatePath } from "next/cache";
 
-import {
-  assertDevelopmentIdentityEnabled,
-  getDevelopmentCurrentUserId,
-} from "@/lib/auth/development-current-user";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { executeCreateWardrobeItem } from "@/modules/wardrobe/application/create-wardrobe-item";
-import { developmentWardrobeRepository } from "@/modules/wardrobe/infrastructure/development-wardrobe-store";
+import { getWardrobeRepository } from "@/modules/wardrobe/infrastructure/wardrobe-repository";
 import {
   parseNewWardrobeItem,
   wardrobeItemFormSchema,
@@ -26,8 +23,6 @@ export async function createWardrobeItemAction(
   _previousState: WardrobeItemFormState,
   formData: FormData,
 ): Promise<WardrobeItemFormState> {
-  assertDevelopmentIdentityEnabled();
-
   const candidate = {
     category: formValue(formData, "category"),
     name: formValue(formData, "name"),
@@ -46,11 +41,11 @@ export async function createWardrobeItemAction(
     };
   }
 
-  const ownerId = getDevelopmentCurrentUserId();
+  const ownerId = await getCurrentUserId();
   const item = await executeCreateWardrobeItem(
     parseNewWardrobeItem(ownerId, result.data),
     {
-      repository: developmentWardrobeRepository,
+      repository: getWardrobeRepository(),
       createId: randomUUID,
       now: () => new Date(),
     },
