@@ -7,6 +7,8 @@ import { getWardrobeRepository } from "@/modules/wardrobe/infrastructure/wardrob
 
 import { WardrobeItemForm } from "./wardrobe-item-form";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Wardrobe",
 };
