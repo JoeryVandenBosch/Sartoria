@@ -28,6 +28,7 @@ export class OutfitValidationError extends Error {
 }
 
 const controlCharacters = /[\u0000-\u001F\u007F]/u;
+const privateNoteControlCharacters = /[\u0000\u0008\u000B\u000C\u000E-\u001F\u007F]/u;
 
 function requiredText(value: string, field: string, maximum: number): string {
   const normalized = value.trim().replace(/\s+/gu, " ");
@@ -63,7 +64,9 @@ function optionalText(
   if (normalized.length > maximum) {
     throw new OutfitValidationError(`${field} must be ${maximum} characters or fewer.`);
   }
-  if (/\u0000|\u0008|\u000B|\u000C|\u000E-\u001F|\u007F/u.test(normalized)) {
+  if (
+    (preserveLineBreaks ? privateNoteControlCharacters : controlCharacters).test(normalized)
+  ) {
     throw new OutfitValidationError(`${field} contains an invalid control character.`);
   }
   return normalized;
@@ -82,7 +85,9 @@ function itemIds(values: readonly string[]): readonly string[] {
   }
 
   if (new Set(normalized).size !== normalized.length) {
-    throw new OutfitValidationError("An outfit cannot contain the same wardrobe item more than once.");
+    throw new OutfitValidationError(
+      "An outfit cannot contain the same wardrobe item more than once.",
+    );
   }
 
   return Object.freeze(normalized);
