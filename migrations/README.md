@@ -17,7 +17,9 @@ Never commit real values.
 npm run db:migrate
 ```
 
-The runner records completed files in `sartoria_schema_migrations` and refuses to continue without `DATABASE_URL`.
+The runner applies each SQL file and its `sartoria_schema_migrations` record in one transaction. It rolls back both when any statement fails and refuses to start without `DATABASE_URL`.
+
+Migration SQL files must not contain their own `BEGIN`, `COMMIT`, or `ROLLBACK` statements because transaction ownership belongs to the runner.
 
 ## Apply Better Auth migrations
 
