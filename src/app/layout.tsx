@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { CrownMark } from "@/components/brand/crown-mark";
 
 import "./globals.css";
+import "./media.css";
 
 export const metadata: Metadata = {
   title: {
