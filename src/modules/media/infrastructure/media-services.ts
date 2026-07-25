@@ -1,15 +1,21 @@
 import { createDatabasePool } from "@/lib/database/database-session";
 import { assertDatabaseConfigured, getPostgresPool } from "@/lib/database/postgres-pool";
 import type { MediaObjectStore } from "@/modules/media/application/media-object-store";
+import type { MediaProcessingDispatcher } from "@/modules/media/application/media-processing-dispatcher";
 import type { MediaScanner } from "@/modules/media/application/media-scanner";
 import type { WardrobeMediaRepository } from "@/modules/media/application/wardrobe-media-repository";
 
 import { ClamAvMediaScanner, createClamAvMediaScanner } from "./clamav-media-scanner";
+import { DevelopmentMediaProcessingDispatcher } from "./development-media-processing-dispatcher";
 import { DevelopmentMediaScanner } from "./development-media-scanner";
 import {
   developmentMediaObjectStore,
   type DevelopmentMediaObjectStore,
 } from "./development-media-object-store";
+import {
+  createHttpMediaProcessingDispatcher,
+  HttpMediaProcessingDispatcher,
+} from "./http-media-processing-dispatcher";
 import { InMemoryWardrobeMediaRepository } from "./in-memory-wardrobe-media-repository";
 import { PostgresWardrobeMediaRepository } from "./postgres-wardrobe-media-repository";
 import { createS3MediaObjectStore, S3MediaObjectStore } from "./s3-media-object-store";
@@ -19,6 +25,7 @@ type SartoriaGlobal = typeof globalThis & {
   sartoriaPostgresMediaRepository?: PostgresWardrobeMediaRepository;
   sartoriaS3MediaObjectStore?: S3MediaObjectStore;
   sartoriaClamAvMediaScanner?: ClamAvMediaScanner;
+  sartoriaMediaProcessingDispatcher?: HttpMediaProcessingDispatcher;
 };
 
 const sartoriaGlobal = globalThis as SartoriaGlobal;
@@ -89,6 +96,27 @@ export function getMediaScanner(): MediaScanner {
   }
 
   return scanner;
+}
+
+export function getMediaProcessingDispatcher(): MediaProcessingDispatcher {
+  if (!productionMediaEnabled()) {
+    return new DevelopmentMediaProcessingDispatcher({
+      mediaRepository: developmentRepository(),
+      objectStore: developmentMediaObjectStore,
+      scanner: new DevelopmentMediaScanner(developmentMediaObjectStore),
+      now: () => new Date(),
+    });
+  }
+
+  const dispatcher =
+    sartoriaGlobal.sartoriaMediaProcessingDispatcher ??
+    createHttpMediaProcessingDispatcher();
+
+  if (process.env.NODE_ENV !== "production") {
+    sartoriaGlobal.sartoriaMediaProcessingDispatcher = dispatcher;
+  }
+
+  return dispatcher;
 }
 
 export function getDevelopmentMediaServices(): Readonly<{
