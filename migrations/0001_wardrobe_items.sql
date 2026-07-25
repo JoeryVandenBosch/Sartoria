@@ -1,5 +1,3 @@
-BEGIN;
-
 CREATE TABLE IF NOT EXISTS wardrobe_items (
   id text PRIMARY KEY,
   owner_id text NOT NULL,
@@ -44,5 +42,3 @@ CREATE POLICY wardrobe_items_owner_isolation
   WITH CHECK (
     owner_id = nullif(current_setting('app.user_id', true), '')
   );
-
-COMMIT;
