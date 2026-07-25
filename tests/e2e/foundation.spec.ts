@@ -5,6 +5,23 @@ const onePixelPng = Buffer.from(
   "base64",
 );
 
+async function addWardrobeItem(
+  page: Parameters<typeof test>[0] extends never ? never : import("@playwright/test").Page,
+  input: Readonly<{
+    name: string;
+    category: string;
+    colour: string;
+    brand: string;
+  }>,
+) {
+  await page.getByLabel("Item name").fill(input.name);
+  await page.getByLabel("Category").selectOption(input.category);
+  await page.getByLabel("Primary colour").fill(input.colour);
+  await page.getByLabel("Brand").fill(input.brand);
+  await page.getByRole("button", { name: "Add to wardrobe" }).click();
+  await expect(page.getByText(`${input.name} was added to your wardrobe.`)).toBeVisible();
+}
+
 test("opens the private wardrobe foundation", async ({ page }) => {
   await page.goto("/");
 
@@ -21,14 +38,13 @@ test("adds a wardrobe item and processes a private image", async ({ page }, test
   const itemName = `Navy test blazer ${Date.now()}-${testInfo.retry}`;
 
   await page.goto("/wardrobe");
+  await addWardrobeItem(page, {
+    name: itemName,
+    category: "tailoring",
+    colour: "Navy",
+    brand: "Sartoria test",
+  });
 
-  await page.getByLabel("Item name").fill(itemName);
-  await page.getByLabel("Category").selectOption("tailoring");
-  await page.getByLabel("Primary colour").fill("Navy");
-  await page.getByLabel("Brand").fill("Sartoria test");
-  await page.getByRole("button", { name: "Add to wardrobe" }).click();
-
-  await expect(page.getByText(`${itemName} was added to your wardrobe.`)).toBeVisible();
   const itemCard = page.getByRole("article").filter({
     has: page.getByRole("heading", { name: itemName, exact: true }),
   });
@@ -121,20 +137,18 @@ test("creates and opens a deterministic manual outfit", async ({ page }, testInf
   const outfitName = `Dinner composition ${marker}`;
 
   await page.goto("/wardrobe");
-
-  await page.getByLabel("Item name").fill(blazerName);
-  await page.getByLabel("Category").selectOption("tailoring");
-  await page.getByLabel("Primary colour").fill("Navy");
-  await page.getByLabel("Brand").fill("Gran Sasso");
-  await page.getByRole("button", { name: "Add to wardrobe" }).click();
-  await expect(page.getByText(`${blazerName} was added to your wardrobe.`)).toBeVisible();
-
-  await page.getByLabel("Item name").fill(trouserName);
-  await page.getByLabel("Category").selectOption("trousers");
-  await page.getByLabel("Primary colour").fill("Deep navy");
-  await page.getByLabel("Brand").fill("Sartoria test");
-  await page.getByRole("button", { name: "Add to wardrobe" }).click();
-  await expect(page.getByText(`${trouserName} was added to your wardrobe.`)).toBeVisible();
+  await addWardrobeItem(page, {
+    name: blazerName,
+    category: "tailoring",
+    colour: "Navy",
+    brand: "Gran Sasso",
+  });
+  await addWardrobeItem(page, {
+    name: trouserName,
+    category: "trousers",
+    colour: "Deep navy",
+    brand: "Sartoria test",
+  });
 
   await page.getByRole("link", { name: "Outfits", exact: true }).click();
   await expect(page).toHaveURL(/\/outfits$/);
@@ -160,4 +174,56 @@ test("creates and opens a deterministic manual outfit", async ({ page }, testInf
 
   await page.getByRole("link", { name: "Back to outfits" }).click();
   await expect(page.getByRole("heading", { name: outfitName })).toBeVisible();
+});
+
+test("edits an outfit and corrects private wear history before deletion", async ({ page }, testInfo) => {
+  const marker = `${Date.now()}-${testInfo.retry}`;
+  const shirtName = `Lifecycle shirt ${marker}`;
+  const trouserName = `Lifecycle trousers ${marker}`;
+  const outfitName = `Lifecycle outfit ${marker}`;
+  const revisedName = `Revised lifecycle outfit ${marker}`;
+
+  await page.goto("/wardrobe");
+  await addWardrobeItem(page, {
+    name: shirtName,
+    category: "shirts",
+    colour: "White",
+    brand: "Sartoria test",
+  });
+  await addWardrobeItem(page, {
+    name: trouserName,
+    category: "trousers",
+    colour: "Navy",
+    brand: "Sartoria test",
+  });
+
+  await page.getByRole("link", { name: "Outfits", exact: true }).click();
+  await page.getByLabel("Outfit name").fill(outfitName);
+  await page.locator("label", { hasText: shirtName }).getByRole("checkbox").check();
+  await page.locator("label", { hasText: trouserName }).getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Save private outfit" }).click();
+  await expect(page.getByRole("heading", { name: outfitName })).toBeVisible();
+
+  await page.getByLabel("Date worn").fill("2026-07-25");
+  await page.getByLabel("Private note", { exact: true }).fill("First explicit wear record.");
+  await page.getByRole("button", { name: "Record private wear" }).click();
+  await expect(page.getByText("Wear event recorded privately.")).toBeVisible();
+  await expect(page.getByText("First explicit wear record.")).toBeVisible();
+  await expect(page.getByText("1 wear", { exact: true })).toBeVisible();
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Remove record" }).click();
+  await expect(page.getByText("No wear history recorded.")).toBeVisible();
+
+  await page.getByText(/Edit outfit revision 1/).click();
+  await page.getByLabel("Outfit name").last().fill(revisedName);
+  await page.getByLabel("Private styling notes").last().fill("Revised private note.");
+  await page.getByRole("button", { name: "Save outfit revision" }).click();
+  await expect(page.getByRole("heading", { name: revisedName })).toBeVisible();
+  await expect(page.getByText("Revised private note.")).toBeVisible();
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Delete outfit" }).click();
+  await expect(page).toHaveURL(/\/outfits$/);
+  await expect(page.getByRole("heading", { name: revisedName })).toHaveCount(0);
 });
