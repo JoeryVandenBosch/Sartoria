@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getCurrentUserId } from "@/lib/auth/current-user";
+import { getOutfitWearHistoryForOwner } from "@/modules/outfits/application/query-outfit-wear";
 import { listOutfitsForOwner } from "@/modules/outfits/application/query-outfits";
 import { getOutfitRepository } from "@/modules/outfits/infrastructure/outfit-repository";
+import { getOutfitWearEventRepository } from "@/modules/outfits/infrastructure/outfit-wear-event-repository";
 import { listWardrobeItemsForOwner } from "@/modules/wardrobe/application/query-wardrobe-items";
 import { getWardrobeRepository } from "@/modules/wardrobe/infrastructure/wardrobe-repository";
 
@@ -16,6 +18,13 @@ export const metadata: Metadata = {
   description: "Private deterministic outfit composition from your wardrobe.",
 };
 
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat("en", {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00.000Z`));
+}
+
 export default async function OutfitsPage() {
   const ownerId = await getCurrentUserId();
   const wardrobeRepository = getWardrobeRepository();
@@ -23,6 +32,13 @@ export default async function OutfitsPage() {
     listOutfitsForOwner(ownerId, getOutfitRepository()),
     listWardrobeItemsForOwner(ownerId, wardrobeRepository),
   ]);
+  const wearEventRepository = getOutfitWearEventRepository();
+  const outfitViews = await Promise.all(
+    outfits.map(async (outfit) => ({
+      outfit,
+      history: await getOutfitWearHistoryForOwner(outfit.id, ownerId, wearEventRepository),
+    })),
+  );
   const selectableItems = wardrobeItems.filter((item) => item.ownershipStatus !== "archived");
 
   return (
@@ -51,9 +67,7 @@ export default async function OutfitsPage() {
 
         {outfits.length === 0 ? (
           <div className="empty-state">
-            <span aria-hidden="true" className="empty-state-number">
-              04
-            </span>
+            <span aria-hidden="true" className="empty-state-number">04</span>
             <div>
               <h3>Your first look starts with two reliable pieces.</h3>
               <p>Select from the wardrobe below. Sartoria will preserve the composition without AI.</p>
@@ -61,7 +75,7 @@ export default async function OutfitsPage() {
           </div>
         ) : (
           <div className="outfit-card-grid">
-            {outfits.map((outfit) => (
+            {outfitViews.map(({ outfit, history }) => (
               <article className="outfit-card" key={outfit.id}>
                 <div className="outfit-card-number" aria-hidden="true">
                   {String(outfit.wardrobeItemIds.length).padStart(2, "0")}
@@ -70,13 +84,16 @@ export default async function OutfitsPage() {
                   <div className="outfit-card-meta">
                     <span>{outfit.occasion ?? "Everyday"}</span>
                     <span>{outfit.wardrobeItemIds.length} pieces</span>
+                    <span>{history.wearCount} {history.wearCount === 1 ? "wear" : "wears"}</span>
                   </div>
                   <h3>{outfit.name}</h3>
                   <p>
-                    Updated {new Intl.DateTimeFormat("en", {
-                      dateStyle: "medium",
-                      timeZone: "UTC",
-                    }).format(new Date(outfit.updatedAt))}
+                    {history.lastWornOn
+                      ? `Last worn ${formatDate(history.lastWornOn)}`
+                      : `Updated ${new Intl.DateTimeFormat("en", {
+                          dateStyle: "medium",
+                          timeZone: "UTC",
+                        }).format(new Date(outfit.updatedAt))}`}
                   </p>
                   <Link className="text-link text-link-dark" href={`/outfits/${outfit.id}`}>
                     View outfit <span aria-hidden="true">→</span>
@@ -99,9 +116,7 @@ export default async function OutfitsPage() {
 
         {selectableItems.length < 2 ? (
           <div className="empty-state">
-            <span aria-hidden="true" className="empty-state-number">
-              02
-            </span>
+            <span aria-hidden="true" className="empty-state-number">02</span>
             <div>
               <h3>Add at least two available wardrobe items first.</h3>
               <p>Archived items are not eligible for new outfits.</p>
