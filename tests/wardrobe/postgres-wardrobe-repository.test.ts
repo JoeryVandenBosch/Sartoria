@@ -92,6 +92,7 @@ describe("PostgresWardrobeItemRepository", () => {
     const session = new FakeSession();
     session.results.push(
       { rows: [], rowCount: 0 },
+      { rows: [], rowCount: 0 },
       {
         rows: [
           {
