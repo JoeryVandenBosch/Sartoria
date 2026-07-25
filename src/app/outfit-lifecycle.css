@@ -1,0 +1,219 @@
+.wear-history-section {
+  display: grid;
+  gap: 2rem;
+}
+
+.wear-event-form {
+  background: rgba(255, 253, 248, 0.72);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-large);
+  display: grid;
+  gap: 2rem;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.wear-event-form h2 {
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  margin-bottom: 0.8rem;
+}
+
+.wear-event-form > div:first-child > p {
+  color: var(--ink-soft);
+  line-height: 1.65;
+  margin-bottom: 0;
+}
+
+.wear-event-fields {
+  align-items: end;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(12rem, 0.5fr) minmax(18rem, 1.2fr) auto;
+}
+
+.wear-event-fields .field {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.wear-event-fields label {
+  font-size: 0.76rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.wear-event-fields input,
+.wear-event-fields textarea {
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid var(--line-strong);
+  border-radius: 0.9rem;
+  color: var(--ink);
+  min-height: 3.2rem;
+  padding: 0.85rem 1rem;
+  width: 100%;
+}
+
+.wear-event-fields textarea {
+  line-height: 1.45;
+  resize: vertical;
+}
+
+.wear-event-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.wear-event-card {
+  align-items: start;
+  background: rgba(255, 253, 248, 0.68);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-medium);
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: minmax(9rem, 0.35fr) minmax(0, 1fr) auto;
+  padding: 1.2rem 1.4rem;
+}
+
+.wear-event-card time {
+  color: var(--bronze);
+  font-family: var(--serif);
+  font-size: 1.1rem;
+}
+
+.wear-event-card > p {
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin-bottom: 0;
+  white-space: pre-wrap;
+}
+
+.wear-event-delete-control,
+.outfit-delete-control {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: end;
+}
+
+.wear-event-delete-button,
+.outfit-danger-button {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  padding: 0.4rem 0;
+  text-transform: uppercase;
+}
+
+.wear-event-delete-button {
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+}
+
+.wear-event-delete-button:hover {
+  border-color: var(--bronze);
+  color: var(--ink);
+}
+
+.outfit-edit-disclosure {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-large);
+  overflow: hidden;
+}
+
+.outfit-edit-disclosure > summary {
+  background: rgba(255, 253, 248, 0.72);
+  cursor: pointer;
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 2.4vw, 1.8rem);
+  list-style-position: inside;
+  padding: 1.5rem clamp(1.5rem, 4vw, 3rem);
+}
+
+.outfit-edit-disclosure[open] > summary {
+  border-bottom: 1px solid var(--line);
+}
+
+.outfit-edit-form {
+  padding: 1.25rem;
+}
+
+.outfit-danger-zone {
+  align-items: center;
+  background: rgba(138, 47, 47, 0.06);
+  border: 1px solid rgba(138, 47, 47, 0.2);
+  border-radius: var(--radius-large);
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.outfit-danger-zone h2 {
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  margin-bottom: 0.7rem;
+}
+
+.outfit-danger-zone p {
+  color: var(--ink-soft);
+  margin-bottom: 0;
+}
+
+.outfit-danger-button {
+  border: 1px solid rgba(138, 47, 47, 0.45);
+  border-radius: 999px;
+  color: #8a2f2f;
+  min-width: 10rem;
+  padding: 0.9rem 1.3rem;
+}
+
+.outfit-danger-button:hover {
+  background: rgba(138, 47, 47, 0.08);
+}
+
+.outfit-danger-button:disabled,
+.wear-event-delete-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+@media (max-width: 900px) {
+  .wear-event-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .wear-event-fields .button {
+    grid-column: 1 / -1;
+  }
+
+  .wear-event-card {
+    grid-template-columns: minmax(8rem, 0.35fr) minmax(0, 1fr);
+  }
+
+  .wear-event-delete-control {
+    grid-column: 2;
+    justify-items: start;
+  }
+}
+
+@media (max-width: 680px) {
+  .wear-event-fields,
+  .wear-event-card {
+    grid-template-columns: 1fr;
+  }
+
+  .wear-event-fields .button,
+  .wear-event-delete-control {
+    grid-column: 1;
+  }
+
+  .outfit-danger-zone {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .outfit-delete-control {
+    justify-items: stretch;
+  }
+}
