@@ -28,6 +28,8 @@ export type WardrobeItem = Readonly<{
   primaryColor: string;
   ownershipStatus: OwnershipStatus;
   fitNotes: string | null;
+  acquisitionCostMinor: number | null;
+  acquisitionCurrency: string | null;
   createdAt: string;
 }>;
 
@@ -39,6 +41,8 @@ export type NewWardrobeItem = Readonly<{
   primaryColor: string;
   ownershipStatus?: OwnershipStatus;
   fitNotes?: string | null;
+  acquisitionCostMinor?: number | null;
+  acquisitionCurrency?: string | null;
 }>;
 
 export type WardrobeItemFactoryDependencies = Readonly<{
@@ -62,6 +66,7 @@ const limits = {
   brand: 120,
   primaryColor: 80,
   fitNotes: 500,
+  acquisitionCostMinor: 100_000_000_000,
 } as const;
 
 function requiredText(
@@ -107,6 +112,56 @@ function optionalText(
   return normalized;
 }
 
+function acquisitionFacts(
+  ownershipStatus: OwnershipStatus,
+  amount: number | null | undefined,
+  currency: string | null | undefined,
+): Readonly<{ acquisitionCostMinor: number | null; acquisitionCurrency: string | null }> {
+  const normalizedCurrency = currency?.trim().toUpperCase() || null;
+  const normalizedAmount = amount ?? null;
+
+  if (normalizedAmount === null && normalizedCurrency === null) {
+    return Object.freeze({ acquisitionCostMinor: null, acquisitionCurrency: null });
+  }
+
+  if (normalizedAmount === null || normalizedCurrency === null) {
+    throw new WardrobeItemValidationError(
+      normalizedAmount === null ? "acquisitionCostMinor" : "acquisitionCurrency",
+      "Acquisition amount and currency must be recorded together",
+    );
+  }
+
+  if (
+    !Number.isSafeInteger(normalizedAmount) ||
+    normalizedAmount < 1 ||
+    normalizedAmount > limits.acquisitionCostMinor
+  ) {
+    throw new WardrobeItemValidationError(
+      "acquisitionCostMinor",
+      "Acquisition cost must be a positive supported minor-unit amount",
+    );
+  }
+
+  if (!/^[A-Z]{3}$/u.test(normalizedCurrency)) {
+    throw new WardrobeItemValidationError(
+      "acquisitionCurrency",
+      "Acquisition currency must be a three-letter uppercase code",
+    );
+  }
+
+  if (ownershipStatus !== "owned") {
+    throw new WardrobeItemValidationError(
+      "acquisitionCostMinor",
+      "Acquisition cost can only be recorded for an owned item",
+    );
+  }
+
+  return Object.freeze({
+    acquisitionCostMinor: normalizedAmount,
+    acquisitionCurrency: normalizedCurrency,
+  });
+}
+
 export function createWardrobeItem(
   input: NewWardrobeItem,
   dependencies: WardrobeItemFactoryDependencies,
@@ -116,6 +171,13 @@ export function createWardrobeItem(
     throw new Error("Wardrobe item id factory returned an empty identifier");
   }
 
+  const ownershipStatus = input.ownershipStatus ?? "owned";
+  const acquisition = acquisitionFacts(
+    ownershipStatus,
+    input.acquisitionCostMinor,
+    input.acquisitionCurrency,
+  );
+
   return Object.freeze({
     id,
     ownerId: requiredText("ownerId", input.ownerId),
@@ -123,8 +185,9 @@ export function createWardrobeItem(
     name: requiredText("name", input.name),
     brand: optionalText("brand", input.brand),
     primaryColor: requiredText("primaryColor", input.primaryColor),
-    ownershipStatus: input.ownershipStatus ?? "owned",
+    ownershipStatus,
     fitNotes: optionalText("fitNotes", input.fitNotes),
+    ...acquisition,
     createdAt: dependencies.now().toISOString(),
   });
 }
