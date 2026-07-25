@@ -12,7 +12,7 @@ type SartoriaGlobal = typeof globalThis & {
 
 const sartoriaGlobal = globalThis as SartoriaGlobal;
 
-function usePostgres(): boolean {
+function postgresEnabled(): boolean {
   const mode = process.env.SARTORIA_PERSISTENCE_MODE;
   if (mode && mode !== "memory" && mode !== "postgres") {
     throw new Error(`Unsupported SARTORIA_PERSISTENCE_MODE: ${mode}`);
@@ -47,5 +47,5 @@ function postgresRepository(): PostgresStyleProfileRepository {
 }
 
 export function getStyleProfileRepository(): StyleProfileRepository {
-  return usePostgres() ? postgresRepository() : developmentRepository();
+  return postgresEnabled() ? postgresRepository() : developmentRepository();
 }
