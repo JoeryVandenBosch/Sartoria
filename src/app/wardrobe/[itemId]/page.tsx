@@ -36,6 +36,20 @@ function browserDisplayable(contentType: WardrobeMediaType | null): boolean {
   return contentType === "image/jpeg" || contentType === "image/png" || contentType === "image/webp";
 }
 
+function acquisitionCost(amountMinor: number | null, currency: string | null): string {
+  if (amountMinor === null || currency === null) {
+    return "Not recorded";
+  }
+  try {
+    return new Intl.NumberFormat("en", {
+      style: "currency",
+      currency,
+    }).format(amountMinor / 100);
+  } catch {
+    return `${currency} ${(amountMinor / 100).toFixed(2)}`;
+  }
+}
+
 export default async function WardrobeItemPage({ params }: WardrobeItemPageProps) {
   const { itemId } = await params;
   const ownerId = await getCurrentUserId();
@@ -88,6 +102,10 @@ export default async function WardrobeItemPage({ params }: WardrobeItemPageProps
               <dd>{label(item.ownershipStatus)}</dd>
             </div>
             <div>
+              <dt>Acquisition cost</dt>
+              <dd>{acquisitionCost(item.acquisitionCostMinor, item.acquisitionCurrency)}</dd>
+            </div>
+            <div>
               <dt>Added</dt>
               <dd>
                 {new Intl.DateTimeFormat("en", {
@@ -118,9 +136,7 @@ export default async function WardrobeItemPage({ params }: WardrobeItemPageProps
 
         {media.length === 0 ? (
           <div className="empty-state">
-            <span aria-hidden="true" className="empty-state-number">
-              02
-            </span>
+            <span aria-hidden="true" className="empty-state-number">02</span>
             <div>
               <h3>No private images yet.</h3>
               <p>Add an original image below. Sartoria will keep it quarantined until validation completes.</p>
