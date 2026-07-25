@@ -17,20 +17,24 @@ test("opens the private wardrobe foundation", async ({ page }) => {
   await expect(page.getByLabel("Item name")).toBeEditable();
 });
 
-test("adds a wardrobe item and processes a private image", async ({ page }) => {
+test("adds a wardrobe item and processes a private image", async ({ page }, testInfo) => {
+  const itemName = `Navy test blazer ${Date.now()}-${testInfo.retry}`;
+
   await page.goto("/wardrobe");
 
-  await page.getByLabel("Item name").fill("Navy test blazer");
+  await page.getByLabel("Item name").fill(itemName);
   await page.getByLabel("Category").selectOption("tailoring");
   await page.getByLabel("Primary colour").fill("Navy");
   await page.getByLabel("Brand").fill("Sartoria test");
   await page.getByRole("button", { name: "Add to wardrobe" }).click();
 
-  await expect(page.getByText("Navy test blazer was added to your wardrobe.")).toBeVisible();
-  const itemCard = page.getByRole("article").filter({ hasText: "Navy test blazer" });
+  await expect(page.getByText(`${itemName} was added to your wardrobe.`)).toBeVisible();
+  const itemCard = page.getByRole("article").filter({
+    has: page.getByRole("heading", { name: itemName, exact: true }),
+  });
   await itemCard.getByRole("link", { name: /View item/ }).click();
 
-  await expect(page.getByRole("heading", { name: "Navy test blazer" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: itemName })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Wardrobe images" })).toBeVisible();
 
   await page.locator("#wardrobe-media-file").setInputFiles({
@@ -42,5 +46,5 @@ test("adds a wardrobe item and processes a private image", async ({ page }) => {
 
   await expect(page.getByText("Image processed successfully.")).toBeVisible();
   await expect(page.getByText("Ready", { exact: true })).toBeVisible();
-  await expect(page.getByAltText("Navy test blazer private wardrobe image")).toBeVisible();
+  await expect(page.getByAltText(`${itemName} private wardrobe image`)).toBeVisible();
 });
