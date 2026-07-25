@@ -47,3 +47,60 @@ test("adds a wardrobe item and processes a private image", async ({ page }, test
   await expect(page.getByText("Ready", { exact: true })).toBeVisible();
   await expect(page.getByAltText(`${itemName} private wardrobe image`)).toBeVisible();
 });
+
+test("saves, exports, reloads, and resets a private style profile", async ({ page }) => {
+  await page.goto("/profile");
+
+  await expect(
+    page.getByRole("heading", { name: "Make the advice unmistakably yours." }),
+  ).toBeVisible();
+  await expect(page.getByText("No private style profile has been saved yet.")).toBeVisible();
+
+  await page.getByLabel("Fit preference").selectOption("tailored");
+  await page.getByLabel("Climate context").selectOption("mixed");
+  await page.getByLabel("Recommendation mode").selectOption("wardrobe-first");
+  await page.getByLabel("Italian Smart Casual").check();
+  await page.getByLabel("Classic").check();
+  await page.getByLabel("Navy").first().check();
+  await page.getByLabel("White").first().check();
+  await page.getByLabel("Orange").last().check();
+  await page.getByLabel("Preferred brands").fill("Gran Sasso\nLuca Faloni");
+  await page.getByLabel("Fur").check();
+  await page.getByLabel("Height (cm)").fill("178");
+  await page.getByLabel("EU shoe size").fill("42");
+
+  await page.getByRole("button", { name: "Save private profile" }).click();
+  await expect(page.getByText(/saved as revision 1/i)).toBeVisible();
+
+  const exported = await page.request.get("/api/profile/export");
+  expect(exported.ok()).toBe(true);
+  expect(exported.headers()["cache-control"]).toContain("no-store");
+  expect(exported.headers()["content-disposition"]).toContain("sartoria-style-profile.json");
+  const payload = (await exported.json()) as {
+    schemaVersion: string;
+    profile: {
+      ownerId: string;
+      revision: number;
+      fitPreference: string;
+      preferredBrands: string[];
+      measurements: { heightCm: number | null };
+      useMeasurementsForRecommendations: boolean;
+    };
+  };
+  expect(payload.schemaVersion).toBe("1.0");
+  expect(payload.profile.revision).toBe(1);
+  expect(payload.profile.fitPreference).toBe("tailored");
+  expect(payload.profile.preferredBrands).toEqual(["Gran Sasso", "Luca Faloni"]);
+  expect(payload.profile.measurements.heightCm).toBe(178);
+  expect(payload.profile.useMeasurementsForRecommendations).toBe(false);
+
+  await page.reload();
+  await expect(page.getByLabel("Fit preference")).toHaveValue("tailored");
+  await expect(page.getByLabel("Italian Smart Casual")).toBeChecked();
+  await expect(page.getByLabel("Height (cm)")).toHaveValue("178");
+
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Reset profile" }).click();
+  await expect(page.getByText("No private style profile has been saved yet.")).toBeVisible();
+  await expect(page.getByLabel("Fit preference")).toHaveValue("regular");
+});
