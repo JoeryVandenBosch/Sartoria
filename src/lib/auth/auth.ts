@@ -28,6 +28,24 @@ export function assertProductionAuthenticationConfigured(): void {
   }
 }
 
+export function assertAuthenticationRuntimeConfigured(): void {
+  const authenticationMode = process.env.SARTORIA_AUTH_MODE;
+
+  if (
+    authenticationMode &&
+    authenticationMode !== "development" &&
+    authenticationMode !== "better-auth"
+  ) {
+    throw new AuthenticationConfigurationError(
+      `Unsupported SARTORIA_AUTH_MODE: ${authenticationMode}`,
+    );
+  }
+
+  if (process.env.NODE_ENV === "production" || authenticationMode === "better-auth") {
+    assertProductionAuthenticationConfigured();
+  }
+}
+
 const configuredBaseUrl = process.env.BETTER_AUTH_URL?.trim();
 const baseUrlConfiguration = configuredBaseUrl ? { baseURL: configuredBaseUrl } : {};
 
