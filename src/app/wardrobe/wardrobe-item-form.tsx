@@ -2,7 +2,10 @@
 
 import { useActionState } from "react";
 
-import { wardrobeCategories } from "@/modules/wardrobe/domain/wardrobe-item";
+import {
+  ownershipStatuses,
+  wardrobeCategories,
+} from "@/modules/wardrobe/domain/wardrobe-item";
 
 import { createWardrobeItemAction } from "./actions";
 import {
@@ -14,8 +17,8 @@ function fieldError(state: WardrobeItemFormState, field: string): string | undef
   return state.fieldErrors[field]?.[0];
 }
 
-function categoryLabel(category: string): string {
-  return category
+function label(value: string): string {
+  return value
     .split("-")
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
@@ -31,18 +34,21 @@ export function WardrobeItemForm() {
   const categoryError = fieldError(state, "category");
   const colourError = fieldError(state, "primaryColor");
   const brandError = fieldError(state, "brand");
+  const statusError = fieldError(state, "ownershipStatus");
   const fitNotesError = fieldError(state, "fitNotes");
+  const costError = fieldError(state, "acquisitionCost");
+  const currencyError = fieldError(state, "acquisitionCurrency");
 
   return (
     <form action={formAction} className="wardrobe-form">
       <div className="form-heading">
         <div>
           <div className="eyebrow">Add an item</div>
-          <h2>Record what you own.</h2>
+          <h2>Record what belongs—or what you are considering.</h2>
         </div>
         <p>
-          Begin with reliable details. Imagery, outfits, and recommendations will build on these
-          wardrobe facts later.
+          Reliable wardrobe facts power private outfits, planning, recommendations, and factual
+          insights. Acquisition cost is optional and never inferred.
         </p>
       </div>
 
@@ -71,9 +77,7 @@ export function WardrobeItemForm() {
             type="text"
           />
           {nameError ? (
-            <span className="field-error" id="wardrobe-name-error">
-              {nameError}
-            </span>
+            <span className="field-error" id="wardrobe-name-error">{nameError}</span>
           ) : null}
         </div>
 
@@ -87,20 +91,36 @@ export function WardrobeItemForm() {
             name="category"
             required
           >
-            <option disabled value="">
-              Select a category
-            </option>
+            <option disabled value="">Select a category</option>
             {wardrobeCategories.map((category) => (
-              <option key={category} value={category}>
-                {categoryLabel(category)}
-              </option>
+              <option key={category} value={category}>{label(category)}</option>
             ))}
           </select>
           {categoryError ? (
-            <span className="field-error" id="wardrobe-category-error">
-              {categoryError}
-            </span>
+            <span className="field-error" id="wardrobe-category-error">{categoryError}</span>
           ) : null}
+        </div>
+
+        <div className="field">
+          <label htmlFor="wardrobe-status">Wardrobe status</label>
+          <select
+            aria-describedby={statusError ? "wardrobe-status-error" : "wardrobe-status-hint"}
+            aria-invalid={Boolean(statusError)}
+            defaultValue="owned"
+            id="wardrobe-status"
+            name="ownershipStatus"
+          >
+            {ownershipStatuses.filter((status) => status !== "archived").map((status) => (
+              <option key={status} value={status}>{label(status)}</option>
+            ))}
+          </select>
+          {statusError ? (
+            <span className="field-error" id="wardrobe-status-error">{statusError}</span>
+          ) : (
+            <span className="field-hint" id="wardrobe-status-hint">
+              Wish-list items receive purchase-impact analysis but cannot be packed or worn.
+            </span>
+          )}
         </div>
 
         <div className="field">
@@ -117,13 +137,11 @@ export function WardrobeItemForm() {
             type="text"
           />
           {colourError ? (
-            <span className="field-error" id="wardrobe-colour-error">
-              {colourError}
-            </span>
+            <span className="field-error" id="wardrobe-colour-error">{colourError}</span>
           ) : null}
         </div>
 
-        <div className="field field-wide">
+        <div className="field">
           <label htmlFor="wardrobe-brand">Brand</label>
           <input
             aria-describedby={brandError ? "wardrobe-brand-error" : "wardrobe-brand-hint"}
@@ -136,12 +154,50 @@ export function WardrobeItemForm() {
             type="text"
           />
           {brandError ? (
-            <span className="field-error" id="wardrobe-brand-error">
-              {brandError}
-            </span>
+            <span className="field-error" id="wardrobe-brand-error">{brandError}</span>
           ) : (
             <span className="field-hint" id="wardrobe-brand-hint">
               Leave blank when the brand is unknown or not relevant.
+            </span>
+          )}
+        </div>
+
+        <div className="field">
+          <label htmlFor="wardrobe-cost">Acquisition cost</label>
+          <input
+            aria-describedby={costError ? "wardrobe-cost-error" : "wardrobe-cost-hint"}
+            aria-invalid={Boolean(costError)}
+            id="wardrobe-cost"
+            inputMode="decimal"
+            maxLength={20}
+            name="acquisitionCost"
+            placeholder="Optional, e.g. 349.95"
+          />
+          {costError ? (
+            <span className="field-error" id="wardrobe-cost-error">{costError}</span>
+          ) : (
+            <span className="field-hint" id="wardrobe-cost-hint">
+              Owned items only. Used for cost-per-wear without external price lookup.
+            </span>
+          )}
+        </div>
+
+        <div className="field">
+          <label htmlFor="wardrobe-currency">Currency</label>
+          <input
+            aria-describedby={currencyError ? "wardrobe-currency-error" : "wardrobe-currency-hint"}
+            aria-invalid={Boolean(currencyError)}
+            autoCapitalize="characters"
+            id="wardrobe-currency"
+            maxLength={3}
+            name="acquisitionCurrency"
+            placeholder="EUR"
+          />
+          {currencyError ? (
+            <span className="field-error" id="wardrobe-currency-error">{currencyError}</span>
+          ) : (
+            <span className="field-hint" id="wardrobe-currency-hint">
+              Three-letter code. Sartoria never converts currencies.
             </span>
           )}
         </div>
@@ -158,19 +214,17 @@ export function WardrobeItemForm() {
             rows={4}
           />
           {fitNotesError ? (
-            <span className="field-error" id="wardrobe-fit-error">
-              {fitNotesError}
-            </span>
+            <span className="field-error" id="wardrobe-fit-error">{fitNotesError}</span>
           ) : (
             <span className="field-hint" id="wardrobe-fit-hint">
-              Fit notes remain private and are never written to operational logs.
+              Fit notes remain private and are excluded from factual insight calculations.
             </span>
           )}
         </div>
       </div>
 
       <div className="form-footer">
-        <p>Development foundation: production authentication and persistence are not connected yet.</p>
+        <p>Facts remain owner-scoped. Optional cost is stored exactly as entered and never converted.</p>
         <button className="button button-primary" disabled={pending} type="submit">
           {pending ? "Adding item…" : "Add to wardrobe"}
         </button>
