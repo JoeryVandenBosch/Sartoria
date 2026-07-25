@@ -1,0 +1,50 @@
+import { betterAuth } from "better-auth";
+import { nextCookies } from "better-auth/next-js";
+
+import { assertDatabaseConfigured, getPostgresPool } from "@/lib/database/postgres-pool";
+
+const developmentSecret = "sartoria-development-auth-secret-not-for-production";
+
+export class AuthenticationConfigurationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AuthenticationConfigurationError";
+  }
+}
+
+export function assertProductionAuthenticationConfigured(): void {
+  assertDatabaseConfigured();
+
+  if (!process.env.BETTER_AUTH_SECRET?.trim()) {
+    throw new AuthenticationConfigurationError(
+      "BETTER_AUTH_SECRET is required for production authentication.",
+    );
+  }
+
+  if (!process.env.BETTER_AUTH_URL?.trim()) {
+    throw new AuthenticationConfigurationError(
+      "BETTER_AUTH_URL is required for production authentication.",
+    );
+  }
+}
+
+const configuredBaseUrl = process.env.BETTER_AUTH_URL?.trim();
+const baseUrlConfiguration = configuredBaseUrl ? { baseURL: configuredBaseUrl } : {};
+
+export const auth = betterAuth({
+  ...baseUrlConfiguration,
+  appName: "Sartoria",
+  database: getPostgresPool(),
+  secret: process.env.BETTER_AUTH_SECRET?.trim() || developmentSecret,
+  emailAndPassword: {
+    disableSignUp: true,
+    enabled: true,
+    maxPasswordLength: 128,
+    minPasswordLength: 12,
+    revokeSessionsOnPasswordReset: true,
+  },
+  plugins: [nextCookies()],
+  telemetry: {
+    enabled: false,
+  },
+});
