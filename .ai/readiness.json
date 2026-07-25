@@ -1,0 +1,63 @@
+{
+  "version": "1.0",
+  "owners": {
+    "product": ["JoeryVandenBosch"],
+    "engineering": ["JoeryVandenBosch"],
+    "security": ["JoeryVandenBosch"],
+    "release": ["JoeryVandenBosch"]
+  },
+  "commands": {
+    "bootstrap": "npm install",
+    "build": "npm run build",
+    "test": "npm test",
+    "lint": "npm run lint && npm run typecheck",
+    "validate": "npm run validate"
+  },
+  "boundaries": {
+    "sourceRoots": ["src"],
+    "testRoots": ["tests"],
+    "generatedPaths": [".next", "coverage", "playwright-report"],
+    "protectedPaths": [
+      ".github/workflows",
+      ".ai",
+      ".aiframework",
+      "docs/architecture/decisions",
+      "SECURITY.md",
+      "src/modules/identity",
+      "src/modules/media",
+      "src/modules/recommendations"
+    ]
+  },
+  "validation": {
+    "requiredChecks": [
+      "lint",
+      "typecheck",
+      "unit-tests",
+      "integration-tests",
+      "build",
+      "aiframework-validation"
+    ],
+    "coveragePolicy": "Changed domain behaviour and critical privacy, authorisation, recommendation, and media paths require automated verification.",
+    "securityScanning": [
+      "dependency review",
+      "secret scanning",
+      "static analysis",
+      "upload validation",
+      "AI output schema validation"
+    ]
+  },
+  "risk": {
+    "defaultLevel": 2,
+    "highRiskPaths": [
+      ".github/workflows",
+      "migrations",
+      "infrastructure",
+      "src/modules/identity",
+      "src/modules/media",
+      "src/modules/recommendations",
+      "src/lib/auth",
+      "src/lib/ai"
+    ],
+    "humanApprovalLevels": [3, 4]
+  }
+}
