@@ -39,7 +39,7 @@ export default async function StyleProfilePage() {
         </div>
       </header>
 
-      <StyleProfileForm profile={profile} />
+      <StyleProfileForm key={profile?.revision ?? 0} profile={profile} />
     </div>
   );
 }
