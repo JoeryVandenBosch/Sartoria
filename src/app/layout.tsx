@@ -8,6 +8,7 @@ import "./globals.css";
 import "./media.css";
 import "./profile.css";
 import "./outfits.css";
+import "./outfit-lifecycle.css";
 
 export const metadata: Metadata = {
   title: {

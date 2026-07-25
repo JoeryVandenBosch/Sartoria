@@ -3,9 +3,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getCurrentUserId } from "@/lib/auth/current-user";
+import { getOutfitWearHistoryForOwner } from "@/modules/outfits/application/query-outfit-wear";
 import { getOutfitForOwner } from "@/modules/outfits/application/query-outfits";
 import { getOutfitRepository } from "@/modules/outfits/infrastructure/outfit-repository";
+import { getOutfitWearEventRepository } from "@/modules/outfits/infrastructure/outfit-wear-event-repository";
+import { listWardrobeItemsForOwner } from "@/modules/wardrobe/application/query-wardrobe-items";
 import { getWardrobeRepository } from "@/modules/wardrobe/infrastructure/wardrobe-repository";
+
+import { OutfitDeleteButton } from "./outfit-delete-button";
+import { OutfitEditForm } from "./outfit-edit-form";
+import { WearEventDeleteButton } from "./wear-event-delete-button";
+import { WearEventForm } from "./wear-event-form";
 
 export const dynamic = "force-dynamic";
 
@@ -24,21 +32,38 @@ function label(value: string): string {
     .join(" ");
 }
 
+function formatDate(value: string): string {
+  return new Intl.DateTimeFormat("en", {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(`${value.slice(0, 10)}T00:00:00.000Z`));
+}
+
 export default async function OutfitDetailPage({ params }: OutfitDetailPageProps) {
   const { outfitId } = await params;
   const ownerId = await getCurrentUserId();
-  const outfit = await getOutfitForOwner(outfitId, ownerId, getOutfitRepository());
+  const outfitRepository = getOutfitRepository();
+  const outfit = await getOutfitForOwner(outfitId, ownerId, outfitRepository);
 
   if (!outfit) {
     notFound();
   }
 
   const wardrobeRepository = getWardrobeRepository();
-  const items = await Promise.all(
-    outfit.wardrobeItemIds.map((itemId) =>
-      wardrobeRepository.findByIdForOwner(itemId, ownerId),
+  const [items, wardrobeItems, wearHistory] = await Promise.all([
+    Promise.all(
+      outfit.wardrobeItemIds.map((itemId) =>
+        wardrobeRepository.findByIdForOwner(itemId, ownerId),
+      ),
     ),
-  );
+    listWardrobeItemsForOwner(ownerId, wardrobeRepository),
+    getOutfitWearHistoryForOwner(
+      outfit.id,
+      ownerId,
+      getOutfitWearEventRepository(),
+    ),
+  ]);
+  const today = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="page-frame outfit-detail-page">
@@ -55,6 +80,14 @@ export default async function OutfitDetailPage({ params }: OutfitDetailPageProps
           <div>
             <dt>Pieces</dt>
             <dd>{outfit.wardrobeItemIds.length}</dd>
+          </div>
+          <div>
+            <dt>Wears</dt>
+            <dd>{wearHistory.wearCount}</dd>
+          </div>
+          <div>
+            <dt>Last worn</dt>
+            <dd>{wearHistory.lastWornOn ? formatDate(wearHistory.lastWornOn) : "Not recorded"}</dd>
           </div>
           <div>
             <dt>Revision</dt>
@@ -95,6 +128,7 @@ export default async function OutfitDetailPage({ params }: OutfitDetailPageProps
                   <div className="outfit-card-meta">
                     <span>{label(item.category)}</span>
                     <span>{item.primaryColor}</span>
+                    {item.ownershipStatus === "archived" ? <span>Archived</span> : null}
                   </div>
                   <h3>{item.name}</h3>
                   <p>{item.brand ?? "Brand not recorded"}</p>
@@ -104,7 +138,10 @@ export default async function OutfitDetailPage({ params }: OutfitDetailPageProps
                 </Link>
               </article>
             ) : (
-              <article className="outfit-piece outfit-piece-unavailable" key={outfit.wardrobeItemIds[index]}>
+              <article
+                className="outfit-piece outfit-piece-unavailable"
+                key={outfit.wardrobeItemIds[index]}
+              >
                 <span className="outfit-piece-index" aria-hidden="true">
                   {String(index + 1).padStart(2, "0")}
                 </span>
@@ -124,6 +161,54 @@ export default async function OutfitDetailPage({ params }: OutfitDetailPageProps
           <h2 id="outfit-notes-title">Why this look works</h2>
         </div>
         <p>{outfit.stylingNotes ?? "No private styling notes recorded."}</p>
+      </section>
+
+      <section aria-labelledby="wear-history-title" className="wear-history-section">
+        <div className="section-heading-row">
+          <div>
+            <div className="eyebrow">Private history</div>
+            <h2 id="wear-history-title">Worn by you</h2>
+          </div>
+          <span className="item-count">
+            {wearHistory.wearCount} {wearHistory.wearCount === 1 ? "wear" : "wears"}
+          </span>
+        </div>
+
+        <WearEventForm outfitId={outfit.id} today={today} />
+
+        {wearHistory.events.length === 0 ? (
+          <div className="empty-state">
+            <span aria-hidden="true" className="empty-state-number">00</span>
+            <div>
+              <h3>No wear history recorded.</h3>
+              <p>Sartoria records nothing automatically. Add only the moments you want to remember.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="wear-event-list">
+            {wearHistory.events.map((event) => (
+              <article className="wear-event-card" key={event.id}>
+                <time dateTime={event.wornOn}>{formatDate(event.wornOn)}</time>
+                <p>{event.note ?? "No private note recorded."}</p>
+                <WearEventDeleteButton eventId={event.id} />
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <details className="outfit-edit-disclosure">
+        <summary>Edit outfit revision {outfit.revision}</summary>
+        <OutfitEditForm key={outfit.revision} outfit={outfit} items={wardrobeItems} />
+      </details>
+
+      <section aria-labelledby="outfit-danger-title" className="outfit-danger-zone">
+        <div>
+          <div className="eyebrow">Private data control</div>
+          <h2 id="outfit-danger-title">Delete this outfit</h2>
+          <p>Deletes the composition and all wear history. Wardrobe items and images remain.</p>
+        </div>
+        <OutfitDeleteButton outfitId={outfit.id} revision={outfit.revision} />
       </section>
     </div>
   );
