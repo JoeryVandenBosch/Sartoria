@@ -11,6 +11,7 @@ import "./outfits.css";
 import "./outfit-lifecycle.css";
 import "./recommendations.css";
 import "./planning.css";
+import "./insights.css";
 
 export const metadata: Metadata = {
   title: {
@@ -46,7 +47,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <Link href="/profile">Profile</Link>
               <Link href="/recommendations">Advice</Link>
               <Link href="/planning">Planning</Link>
-              <span aria-disabled="true">Insights</span>
+              <Link href="/insights">Insights</Link>
             </nav>
             <button aria-label="Open account menu" className="account-button" type="button">
               JV
