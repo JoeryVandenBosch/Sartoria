@@ -31,9 +31,11 @@ All coding agents begin with `AGENTS.md`, route execution through `AI_OPERATIONS
 
 ## Delivery status
 
-The engineering foundation and first wardrobe item vertical slice are complete and validated. Production identity and PostgreSQL persistence are now being connected before private wardrobe media is introduced.
+The engineering foundation, first wardrobe item vertical slice, production identity boundary, and PostgreSQL persistence foundation are implemented, security-reviewed, and validated. Managed infrastructure provisioning and explicit production release approval remain pending.
 
 Local development deliberately uses explicit development identity and in-memory persistence adapters. Production modes fail closed when required database and authentication configuration is absent.
+
+The next product slice is private wardrobe media.
 
 ## Development
 
