@@ -73,14 +73,13 @@ async function connectClamAv(configuration: ClamAvConfiguration): Promise<Socket
     host: configuration.host,
     port: configuration.port,
   });
-  socket.setTimeout(configuration.timeoutMilliseconds);
+  socket.setTimeout(configuration.timeoutMilliseconds, () => {
+    socket.destroy(new Error("ClamAV scan timed out."));
+  });
 
   await Promise.race([
     once(socket, "connect"),
     once(socket, "error").then(([error]) => Promise.reject(error)),
-    once(socket, "timeout").then(() =>
-      Promise.reject(new Error("ClamAV connection timed out.")),
-    ),
   ]);
 
   return socket;
