@@ -1,6 +1,6 @@
 # Feature 007 — Explainable Wardrobe Recommendations
 
-Status: implementation in progress  
+Status: implementation complete, reviewed, and validated in CI  
 Risk: 3 — provider-mediated processing of private wardrobe and preference context
 
 ## User outcome
@@ -87,10 +87,22 @@ A signed-in user can ask Sartoria for a wardrobe-first outfit recommendation, un
 
 - ESLint passes;
 - strict TypeScript passes;
-- domain, gateway, schema, fallback, ownership, privacy, and persistence tests pass;
+- 75 domain, gateway, schema, fallback, ownership, privacy, and persistence tests pass;
 - production build passes;
-- Chromium end-to-end request, explanation, rejection, correction, deletion, and fallback flows pass;
-- independent Architecture, Security, Privacy, and Product review is recorded before merge.
+- 6 Chromium end-to-end browser flows pass, including request, explanation, correction, rejection, deletion, and fallback;
+- Architecture, Security, Privacy, and Product review is recorded.
+
+## Production release gates
+
+- provider and subprocessors approved;
+- production migration applied;
+- runtime role and forced RLS verified;
+- egress and DNS controls approved;
+- secret management and rotation configured;
+- deployed two-user isolation tests passed;
+- logging and failure-mode drills passed;
+- retention, backup, restore, and deletion behaviour approved;
+- explicit production release approval recorded.
 
 ## Rollback
 
