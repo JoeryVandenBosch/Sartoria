@@ -58,6 +58,19 @@ Status: implementation complete and security-reviewed; managed infrastructure pr
 - short-lived purpose-limited access;
 - deletion propagation.
 
+Exit criteria:
+
+- uploads enter a non-readable quarantine prefix;
+- storage metadata, content length, declared type, and owner are verified;
+- binary type detection and malware scanning gate promotion;
+- only ready media receive owner-authorised short-lived URLs;
+- deletion removes all object variants and records terminal state;
+- local development and CI use deterministic adapters;
+- lint, strict types, tests, production build, and private-media E2E are green;
+- independent Security and Privacy review is recorded.
+
+Status: implementation and validation in progress; production storage, queue, scanner, and release approval remain external deployment work.
+
 ## Phase 3 — Profile and preferences
 
 - fit, colour, style, brand, climate, and exclusion preferences;
