@@ -17,6 +17,8 @@ type WardrobeItemRow = Readonly<{
   primary_color: string;
   ownership_status: string;
   fit_notes: string | null;
+  acquisition_cost_minor: number | string | null;
+  acquisition_currency: string | null;
   created_at: Date | string;
 }>;
 
@@ -32,8 +34,22 @@ function enumValue<Value extends string>(
   return value as Value;
 }
 
+function acquisitionCost(value: number | string | null): number | null {
+  if (value === null) {
+    return null;
+  }
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (!Number.isSafeInteger(numeric) || numeric < 1) {
+    throw new Error("Database returned an invalid acquisition cost.");
+  }
+  return numeric;
+}
+
 function mapRow(row: WardrobeItemRow): WardrobeItem {
-  const createdAt = row.created_at instanceof Date ? row.created_at.toISOString() : new Date(row.created_at).toISOString();
+  const createdAt =
+    row.created_at instanceof Date
+      ? row.created_at.toISOString()
+      : new Date(row.created_at).toISOString();
 
   return Object.freeze({
     id: row.id,
@@ -48,6 +64,8 @@ function mapRow(row: WardrobeItemRow): WardrobeItem {
       "ownership status",
     ),
     fitNotes: row.fit_notes,
+    acquisitionCostMinor: acquisitionCost(row.acquisition_cost_minor),
+    acquisitionCurrency: row.acquisition_currency,
     createdAt,
   });
 }
@@ -77,6 +95,20 @@ async function withOwnerSession<Result>(
   }
 }
 
+const selectedColumns = `
+  id,
+  owner_id,
+  category,
+  name,
+  brand,
+  primary_color,
+  ownership_status,
+  fit_notes,
+  acquisition_cost_minor,
+  acquisition_currency,
+  created_at
+`;
+
 export class PostgresWardrobeItemRepository implements WardrobeItemRepository {
   constructor(private readonly pool: DatabasePool) {}
 
@@ -92,8 +124,10 @@ export class PostgresWardrobeItemRepository implements WardrobeItemRepository {
           primary_color,
           ownership_status,
           fit_notes,
+          acquisition_cost_minor,
+          acquisition_currency,
           created_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
         [
           item.id,
           item.ownerId,
@@ -103,6 +137,8 @@ export class PostgresWardrobeItemRepository implements WardrobeItemRepository {
           item.primaryColor,
           item.ownershipStatus,
           item.fitNotes,
+          item.acquisitionCostMinor,
+          item.acquisitionCurrency,
           item.createdAt,
         ],
       );
@@ -112,16 +148,7 @@ export class PostgresWardrobeItemRepository implements WardrobeItemRepository {
   async listByOwner(ownerId: string): Promise<readonly WardrobeItem[]> {
     return withOwnerSession(this.pool, ownerId, async (session) => {
       const result = await session.query<WardrobeItemRow>(
-        `SELECT
-          id,
-          owner_id,
-          category,
-          name,
-          brand,
-          primary_color,
-          ownership_status,
-          fit_notes,
-          created_at
+        `SELECT ${selectedColumns}
         FROM wardrobe_items
         WHERE owner_id = $1
         ORDER BY created_at DESC`,
@@ -135,16 +162,7 @@ export class PostgresWardrobeItemRepository implements WardrobeItemRepository {
   async findByIdForOwner(itemId: string, ownerId: string): Promise<WardrobeItem | null> {
     return withOwnerSession(this.pool, ownerId, async (session) => {
       const result = await session.query<WardrobeItemRow>(
-        `SELECT
-          id,
-          owner_id,
-          category,
-          name,
-          brand,
-          primary_color,
-          ownership_status,
-          fit_notes,
-          created_at
+        `SELECT ${selectedColumns}
         FROM wardrobe_items
         WHERE id = $1 AND owner_id = $2
         LIMIT 1`,
