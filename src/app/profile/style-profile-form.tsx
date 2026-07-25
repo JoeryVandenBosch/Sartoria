@@ -36,7 +36,7 @@ type CheckboxGroupProps<Value extends string> = Readonly<{
   name: string;
   values: readonly Value[];
   selected: readonly Value[];
-  error?: string;
+  error: string | undefined;
 }>;
 
 function CheckboxGroup<Value extends string>({
