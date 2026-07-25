@@ -5,6 +5,7 @@ import {
   createWardrobeMedia,
   maximumWardrobeMediaBytes,
   mediaPolicyLifetimeSeconds,
+  rejectWardrobeMedia,
   type WardrobeMedia,
   type WardrobeMediaType,
 } from "@/modules/media/domain/wardrobe-media";
@@ -68,7 +69,22 @@ export async function initiateWardrobeMediaUpload(
 
     return { media, policy };
   } catch (error) {
-    await dependencies.objectStore.deleteObjects([media.quarantineKey]);
+    try {
+      await dependencies.objectStore.deleteObjects([media.quarantineKey]);
+    } catch {
+      // Preserve the policy-generation failure; reconciliation handles any unexpected orphan.
+    }
+
+    try {
+      const rejected = rejectWardrobeMedia(media, {
+        code: "object-missing",
+        now: dependencies.now(),
+      });
+      await dependencies.mediaRepository.update(rejected, "initiated");
+    } catch {
+      // Preserve the original error; the initiated record remains visible to cleanup reconciliation.
+    }
+
     throw error;
   }
 }
