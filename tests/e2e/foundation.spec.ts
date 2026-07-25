@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const onePixelPng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZQmcAAAAASUVORK5CYII=",
@@ -6,7 +6,7 @@ const onePixelPng = Buffer.from(
 );
 
 async function addWardrobeItem(
-  page: Parameters<typeof test>[0] extends never ? never : import("@playwright/test").Page,
+  page: Page,
   input: Readonly<{
     name: string;
     category: string;
@@ -169,7 +169,9 @@ test("creates and opens a deterministic manual outfit", async ({ page }, testInf
   await expect(page.getByRole("heading", { name: outfitName })).toBeVisible();
   await expect(page.getByRole("heading", { name: blazerName })).toBeVisible();
   await expect(page.getByRole("heading", { name: trouserName })).toBeVisible();
-  await expect(page.getByText("Keep the silhouette tonal and restrained.")).toBeVisible();
+  await expect(
+    page.getByLabel("Why this look works").getByText("Keep the silhouette tonal and restrained."),
+  ).toBeVisible();
   await expect(page.getByText("Manual composition")).toBeVisible();
 
   await page.getByRole("link", { name: "Back to outfits" }).click();
@@ -220,7 +222,9 @@ test("edits an outfit and corrects private wear history before deletion", async 
   await page.getByLabel("Private styling notes").last().fill("Revised private note.");
   await page.getByRole("button", { name: "Save outfit revision" }).click();
   await expect(page.getByRole("heading", { name: revisedName })).toBeVisible();
-  await expect(page.getByText("Revised private note.")).toBeVisible();
+  await expect(
+    page.getByLabel("Why this look works").getByText("Revised private note."),
+  ).toBeVisible();
 
   page.once("dialog", (dialog) => dialog.accept());
   await page.getByRole("button", { name: "Delete outfit" }).click();
