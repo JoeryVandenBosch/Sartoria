@@ -1,0 +1,432 @@
+.sr-only {
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.outfits-page,
+.outfit-detail-page {
+  gap: clamp(3rem, 6vw, 6rem);
+}
+
+.outfits-hero,
+.outfit-detail-hero {
+  align-items: end;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: clamp(2rem, 6vw, 7rem);
+  grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+  padding-bottom: clamp(3rem, 6vw, 6rem);
+}
+
+.outfits-hero h1,
+.outfit-detail-hero h1 {
+  font-size: clamp(3.6rem, 8vw, 7.5rem);
+  margin-bottom: 0;
+  max-width: 10ch;
+}
+
+.outfits-hero > p {
+  color: var(--ink-soft);
+  font-family: var(--serif);
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+.saved-outfits-section,
+.compose-outfit-section,
+.outfit-pieces-section {
+  display: grid;
+  gap: 2rem;
+}
+
+.outfit-card-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.outfit-card {
+  background: rgba(255, 253, 248, 0.68);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-large);
+  display: grid;
+  gap: 1.5rem;
+  min-height: 22rem;
+  padding: 1.5rem;
+}
+
+.outfit-card-number {
+  align-items: center;
+  background: var(--navy);
+  border-radius: var(--radius-medium);
+  color: var(--bronze-soft);
+  display: flex;
+  font-family: var(--serif);
+  font-size: 3rem;
+  justify-content: center;
+  min-height: 8rem;
+}
+
+.outfit-card-copy {
+  align-content: start;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.outfit-card-copy h3,
+.outfit-piece-copy h3 {
+  margin-bottom: 0;
+}
+
+.outfit-card-copy > p,
+.outfit-piece-copy > p {
+  color: var(--ink-soft);
+  font-size: 0.86rem;
+  margin-bottom: 0;
+}
+
+.outfit-card-meta {
+  color: var(--bronze);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.68rem;
+  gap: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.outfit-form {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.outfit-form-section {
+  background: rgba(255, 253, 248, 0.72);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-large);
+  display: grid;
+  gap: 2.5rem;
+  margin: 0;
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.outfit-section-heading {
+  align-items: start;
+  display: grid;
+  gap: 1.25rem;
+  grid-template-columns: 2.25rem minmax(0, 1fr);
+}
+
+.outfit-section-heading > span {
+  color: var(--bronze);
+  font-family: var(--serif);
+  font-size: 0.82rem;
+  padding-top: 0.3rem;
+}
+
+.outfit-section-heading h2 {
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  margin-bottom: 0.8rem;
+  max-width: 17ch;
+}
+
+.outfit-section-heading p {
+  color: var(--ink-soft);
+  line-height: 1.65;
+  margin-bottom: 0;
+  max-width: 42rem;
+}
+
+.outfit-identity-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.outfit-form .field {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.outfit-form .field label {
+  font-size: 0.76rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.outfit-form input[type="text"],
+.outfit-form textarea {
+  background: rgba(255, 255, 255, 0.68);
+  border: 1px solid var(--line-strong);
+  border-radius: 0.9rem;
+  color: var(--ink);
+  min-height: 3.2rem;
+  padding: 0.85rem 1rem;
+  width: 100%;
+}
+
+.outfit-form textarea {
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.outfit-selection-summary {
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 0.6rem;
+  padding-bottom: 1rem;
+}
+
+.outfit-selection-summary strong {
+  color: var(--bronze);
+  font-family: var(--serif);
+  font-size: 2rem;
+}
+
+.outfit-selection-summary span {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.outfit-category-group {
+  display: grid;
+  gap: 1rem;
+}
+
+.outfit-category-group h3 {
+  border-bottom: 1px solid var(--line);
+  font-size: 1.2rem;
+  padding-bottom: 0.7rem;
+}
+
+.outfit-item-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.outfit-item-choice {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-medium);
+  cursor: pointer;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: auto 3.5rem minmax(0, 1fr);
+  padding: 0.8rem;
+  transition:
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.outfit-item-choice:hover {
+  border-color: var(--bronze);
+  transform: translateY(-1px);
+}
+
+.outfit-item-choice input {
+  height: 1.1rem;
+  width: 1.1rem;
+}
+
+.outfit-item-choice:has(input:checked) {
+  background: rgba(148, 113, 74, 0.1);
+  border-color: var(--bronze);
+}
+
+.outfit-item-choice-visual {
+  align-items: center;
+  background: var(--navy);
+  border-radius: 0.8rem;
+  color: var(--bronze-soft);
+  display: flex;
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  height: 3.5rem;
+  justify-content: center;
+}
+
+.outfit-item-choice-copy {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.outfit-item-choice-copy strong {
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.outfit-item-choice-copy small {
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.outfit-form-footer {
+  align-items: center;
+  background: var(--navy);
+  border-radius: var(--radius-large);
+  color: white;
+  display: flex;
+  gap: 2rem;
+  justify-content: space-between;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.outfit-form-footer > div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.outfit-form-footer p {
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 0;
+}
+
+.outfit-detail-facts {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.outfit-detail-facts div {
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+
+.outfit-detail-facts dt {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.outfit-detail-facts dd {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.outfit-piece-list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.outfit-piece {
+  align-items: center;
+  background: rgba(255, 253, 248, 0.68);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-medium);
+  display: grid;
+  gap: 1.2rem;
+  grid-template-columns: 2rem 5rem minmax(0, 1fr) auto;
+  padding: 1rem 1.2rem;
+}
+
+.outfit-piece-index {
+  color: var(--bronze);
+  font-family: var(--serif);
+}
+
+.outfit-piece-visual {
+  align-items: center;
+  background: var(--navy);
+  border-radius: 1rem;
+  color: var(--bronze-soft);
+  display: flex;
+  font-family: var(--serif);
+  font-size: 2rem;
+  height: 5rem;
+  justify-content: center;
+}
+
+.outfit-piece-copy {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.outfit-piece-unavailable {
+  opacity: 0.68;
+}
+
+.outfit-notes-panel {
+  background: var(--navy);
+  border-radius: var(--radius-large);
+  color: white;
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+  padding: clamp(2rem, 5vw, 5rem);
+}
+
+.outfit-notes-panel .eyebrow {
+  color: var(--bronze-soft);
+}
+
+.outfit-notes-panel h2 {
+  margin-bottom: 0;
+}
+
+.outfit-notes-panel > p {
+  color: rgba(255, 255, 255, 0.75);
+  font-family: var(--serif);
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  line-height: 1.7;
+  margin-bottom: 0;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 1000px) {
+  .outfits-hero,
+  .outfit-detail-hero,
+  .outfit-notes-panel,
+  .outfit-identity-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .outfit-card-grid,
+  .outfit-item-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .outfit-card-grid,
+  .outfit-item-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .outfit-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .outfit-form-footer .button {
+    width: 100%;
+  }
+
+  .outfit-piece {
+    align-items: start;
+    grid-template-columns: 2rem 4rem minmax(0, 1fr);
+  }
+
+  .outfit-piece .text-link {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+
+  .outfit-piece-visual {
+    height: 4rem;
+  }
+}
