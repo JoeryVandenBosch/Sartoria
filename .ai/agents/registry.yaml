@@ -1,0 +1,66 @@
+version: 1
+policy:
+  source_of_truth: repository
+  shared_contract: AI_AGENTS.md
+  require_independent_review_for_high_risk: true
+  require_repository_inspection: true
+  require_validation_evidence: true
+agents:
+  product:
+    definition: AI_AGENTS.md#product-agent
+    produces_changes: true
+    may_approve_own_work: false
+  brand-experience:
+    definition: AI_AGENTS.md#brand-and-experience-agent
+    produces_changes: true
+    may_approve_own_work: false
+  architecture:
+    definition: AI_AGENTS.md#architecture-agent
+    produces_changes: true
+    may_approve_own_work: false
+  implementation:
+    definition: AI_AGENTS.md#implementation-agent
+    produces_changes: true
+    may_approve_own_work: false
+  test:
+    definition: AI_AGENTS.md#test-agent
+    produces_changes: true
+    may_approve_own_work: false
+  security-privacy:
+    definition: AI_AGENTS.md#security-and-privacy-agent
+    produces_changes: true
+    may_approve_own_work: false
+  recommendation-quality:
+    definition: AI_AGENTS.md#recommendation-quality-agent
+    produces_changes: true
+    may_approve_own_work: false
+  reviewer:
+    definition: AI_AGENTS.md#review-agent
+    produces_changes: false
+    may_approve_own_work: false
+  release-operations:
+    definition: AI_AGENTS.md#release-and-operations-agent
+    produces_changes: true
+    may_approve_own_work: false
+  research:
+    definition: AI_AGENTS.md#research-agent
+    produces_changes: true
+    may_approve_own_work: false
+  documentation:
+    definition: AI_AGENTS.md#documentation-agent
+    produces_changes: true
+    may_approve_own_work: false
+risk:
+  high_risk_triggers:
+    - authentication
+    - authorization
+    - personal-data
+    - wardrobe-media
+    - external-ai-provider
+    - destructive-operation
+    - production-access
+    - security-control-bypass
+    - schema-migration
+  mandatory_reviewers:
+    - reviewer
+    - security-privacy
