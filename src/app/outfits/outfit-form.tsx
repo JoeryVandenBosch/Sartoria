@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 
-import type { WardrobeItem, WardrobeCategory } from "@/modules/wardrobe/domain/wardrobe-item";
+import type { WardrobeCategory, WardrobeItem } from "@/modules/wardrobe/domain/wardrobe-item";
 
 import { createOutfitAction } from "./actions";
 import { initialOutfitFormState, type OutfitFormState } from "./form-state";
@@ -126,9 +126,8 @@ export function OutfitForm({ items }: Readonly<{ items: readonly WardrobeItem[] 
                       id={id}
                       name="wardrobeItemIds"
                       onChange={(event) => {
-                        setSelectedCount((current) =>
-                          event.currentTarget.checked ? current + 1 : current - 1,
-                        );
+                        const checked = event.currentTarget.checked;
+                        setSelectedCount((current) => (checked ? current + 1 : current - 1));
                       }}
                       type="checkbox"
                       value={item.id}
