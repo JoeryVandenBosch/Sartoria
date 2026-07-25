@@ -1,0 +1,3 @@
+Read `AGENTS.md`, `AI_AGENTS.md`, `CLAUDE.md`, `VISION.md`, `ARCHITECTURE.md`, active ADRs, and relevant product specifications before editing.
+
+Use the repository as the source of truth. Preserve Sartoria’s brand, privacy, accessibility, modular architecture, and explainable recommendation boundaries. Add tests and documentation with material changes and require independent review for high-risk work.
