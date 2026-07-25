@@ -14,31 +14,47 @@ type RouteContext = Readonly<{
   params: Promise<{ mediaId: string }>;
 }>;
 
+function responseStatus(status: string): number {
+  if (status === "ready") {
+    return 200;
+  }
+
+  if (status === "uploaded" || status === "scanning" || status === "failed") {
+    return 202;
+  }
+
+  return 422;
+}
+
 export async function POST(_request: Request, context: RouteContext): Promise<NextResponse> {
   const { mediaId } = await context.params;
   const ownerId = await getCurrentUserId();
+  const mediaRepository = getWardrobeMediaRepository();
 
   try {
-    const media = await completeWardrobeMediaUpload(
+    const completed = await completeWardrobeMediaUpload(
       { mediaId, ownerId },
       {
-        mediaRepository: getWardrobeMediaRepository(),
+        mediaRepository,
         objectStore: getMediaObjectStore(),
         now: () => new Date(),
       },
     );
 
-    if (media.status === "uploaded") {
-      await getMediaProcessingDispatcher().dispatch({ mediaId: media.id, ownerId });
+    if (completed.status === "uploaded") {
+      await getMediaProcessingDispatcher().dispatch({ mediaId: completed.id, ownerId });
     }
+
+    const current =
+      (await mediaRepository.findByIdForOwner(completed.id, ownerId)) ?? completed;
 
     return NextResponse.json(
       {
-        mediaId: media.id,
-        status: media.status,
-        rejectionCode: media.rejectionCode,
+        mediaId: current.id,
+        status: current.status,
+        rejectionCode: current.rejectionCode,
       },
-      { status: media.status === "uploaded" ? 202 : 422 },
+      { status: responseStatus(current.status) },
     );
   } catch (error) {
     if ((error as { name?: string }).name === "WardrobeMediaNotFoundError") {
