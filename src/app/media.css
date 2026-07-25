@@ -1,0 +1,234 @@
+.item-detail-visual img,
+.media-card-preview img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.private-media-section {
+  display: grid;
+  gap: 2rem;
+}
+
+.media-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.media-card {
+  background: rgba(255, 253, 248, 0.66);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-medium);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.media-card-preview {
+  align-items: center;
+  aspect-ratio: 4 / 5;
+  background:
+    linear-gradient(150deg, rgba(148, 113, 74, 0.12), transparent 55%),
+    var(--paper-deep);
+  color: var(--ink-soft);
+  display: flex;
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  justify-content: center;
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
+}
+
+.media-card-copy {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.media-card-copy p {
+  color: var(--ink);
+  font-size: 0.82rem;
+  margin: 0.75rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.media-card-copy small {
+  color: var(--ink-soft);
+  display: block;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  margin-top: 0.55rem;
+}
+
+.media-status {
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  display: inline-flex;
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  padding: 0.4rem 0.65rem;
+  text-transform: uppercase;
+}
+
+.media-status-ready {
+  background: rgba(71, 102, 83, 0.1);
+  border-color: rgba(71, 102, 83, 0.24);
+  color: var(--success);
+}
+
+.media-status-rejected,
+.media-status-failed {
+  background: rgba(120, 54, 54, 0.08);
+  border-color: rgba(120, 54, 54, 0.2);
+  color: #783636;
+}
+
+.media-status-uploaded,
+.media-status-scanning,
+.media-status-initiated {
+  background: rgba(148, 113, 74, 0.09);
+  border-color: rgba(148, 113, 74, 0.22);
+  color: #775938;
+}
+
+.media-delete-button {
+  background: transparent;
+  border: 0;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  padding: 0.35rem 0;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.25rem;
+  text-transform: uppercase;
+}
+
+.media-delete-button:hover {
+  color: #783636;
+  text-decoration-color: currentColor;
+}
+
+.media-delete-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.media-upload-form {
+  background: var(--navy);
+  border-radius: var(--radius-large);
+  color: white;
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
+  padding: clamp(2rem, 5vw, 4.5rem);
+}
+
+.media-upload-form .eyebrow {
+  color: var(--bronze-soft);
+}
+
+.media-upload-form h2 {
+  font-size: clamp(2.2rem, 4vw, 4rem);
+  margin-bottom: 1rem;
+  max-width: 12ch;
+}
+
+.media-upload-form p {
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.65;
+  margin-bottom: 0;
+  max-width: 38rem;
+}
+
+.media-upload-controls {
+  align-content: end;
+  display: grid;
+  gap: 1rem;
+}
+
+.file-field {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-medium);
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem;
+}
+
+.file-field > span {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.file-field input {
+  color: white;
+  max-width: 100%;
+}
+
+.file-field input::file-selector-button {
+  background: white;
+  border: 0;
+  border-radius: 999px;
+  color: var(--navy);
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 650;
+  margin-right: 0.8rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.media-upload-form .button-primary {
+  background: white;
+  color: var(--navy);
+}
+
+.media-upload-form .button-primary:hover {
+  background: var(--paper);
+}
+
+.media-upload-message {
+  color: white !important;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+@media (max-width: 900px) {
+  .media-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .media-upload-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .media-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .media-upload-form {
+    padding: 1.5rem;
+  }
+
+  .media-card-copy {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .media-delete-button {
+    justify-self: start;
+    text-align: left;
+  }
+}
