@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { getDevelopmentCurrentUserId } from "@/lib/auth/development-current-user";
+import { getCurrentUserId } from "@/lib/auth/current-user";
 import { listWardrobeItemsForOwner } from "@/modules/wardrobe/application/query-wardrobe-items";
-import { developmentWardrobeRepository } from "@/modules/wardrobe/infrastructure/development-wardrobe-store";
+import { getWardrobeRepository } from "@/modules/wardrobe/infrastructure/wardrobe-repository";
 
 import { WardrobeItemForm } from "./wardrobe-item-form";
 
@@ -19,8 +19,8 @@ function categoryLabel(category: string): string {
 }
 
 export default async function WardrobePage() {
-  const ownerId = getDevelopmentCurrentUserId();
-  const items = await listWardrobeItemsForOwner(ownerId, developmentWardrobeRepository);
+  const ownerId = await getCurrentUserId();
+  const items = await listWardrobeItemsForOwner(ownerId, getWardrobeRepository());
 
   return (
     <div className="page-frame wardrobe-page">
