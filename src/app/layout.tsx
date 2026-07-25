@@ -9,6 +9,7 @@ import "./media.css";
 import "./profile.css";
 import "./outfits.css";
 import "./outfit-lifecycle.css";
+import "./recommendations.css";
 
 export const metadata: Metadata = {
   title: {
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               <Link href="/wardrobe">Wardrobe</Link>
               <Link href="/outfits">Outfits</Link>
               <Link href="/profile">Profile</Link>
+              <Link href="/recommendations">Advice</Link>
               <span aria-disabled="true">Planning</span>
               <span aria-disabled="true">Insights</span>
             </nav>
