@@ -1,0 +1,30 @@
+# Default ownership
+* @JoeryVandenBosch
+
+# AI governance and operating contracts
+/AGENTS.md @JoeryVandenBosch
+/AI_AGENTS.md @JoeryVandenBosch
+/CLAUDE.md @JoeryVandenBosch
+/AI_OPERATIONS/ @JoeryVandenBosch
+/.ai/ @JoeryVandenBosch
+
+# Product, brand, and architecture
+/VISION.md @JoeryVandenBosch
+/ROADMAP.md @JoeryVandenBosch
+/ARCHITECTURE.md @JoeryVandenBosch
+/docs/product/ @JoeryVandenBosch
+/docs/features/ @JoeryVandenBosch
+/docs/architecture/decisions/ @JoeryVandenBosch
+
+# Security, identity, media, and recommendations
+/SECURITY.md @JoeryVandenBosch
+/src/lib/auth/ @JoeryVandenBosch
+/src/modules/identity/ @JoeryVandenBosch
+/src/modules/media/ @JoeryVandenBosch
+/src/modules/recommendations/ @JoeryVandenBosch
+
+# Build and delivery
+/.github/workflows/ @JoeryVandenBosch
+/package.json @JoeryVandenBosch
+/tsconfig.json @JoeryVandenBosch
+/next.config.ts @JoeryVandenBosch
