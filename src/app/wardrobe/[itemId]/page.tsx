@@ -36,8 +36,11 @@ function browserDisplayable(contentType: WardrobeMediaType | null): boolean {
   return contentType === "image/jpeg" || contentType === "image/png" || contentType === "image/webp";
 }
 
-function acquisitionCost(amountMinor: number | null, currency: string | null): string {
-  if (amountMinor === null || currency === null) {
+function acquisitionCost(
+  amountMinor: number | null | undefined,
+  currency: string | null | undefined,
+): string {
+  if (amountMinor == null || currency == null) {
     return "Not recorded";
   }
   try {
