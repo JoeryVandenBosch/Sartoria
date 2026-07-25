@@ -93,10 +93,35 @@ Status: implementation complete, security-reviewed, and validated in CI; product
 
 ## Phase 4 — Outfit composition
 
-- manual outfit creation;
-- suitability and styling notes;
-- saved looks and wear history;
+### Phase 4A — Deterministic manual outfits
+
+- manual outfit creation from two to twelve owned wardrobe items;
+- optional occasion and private styling notes;
+- owner-scoped list and detail experiences;
+- relational membership integrity and optimistic revisions;
 - no AI dependency for core workflows.
+
+Exit criteria:
+
+- every selected wardrobe item is verified server-side for ownership and availability;
+- duplicate, missing, archived, and cross-owner references are rejected;
+- PostgreSQL outfit and membership tables use owner-inclusive foreign keys;
+- row-level security is enabled and forced on both tables;
+- local development uses deterministic in-memory persistence;
+- lint, strict types, 54 unit/application tests, production build, and outfit E2E are green;
+- independent Security and Privacy review is recorded.
+
+Status: implementation complete and validated in CI; review evidence, production migration execution, and release approval remain pending before merge.
+
+### Phase 4B — Outfit lifecycle and wear history
+
+- edit and delete outfit experiences;
+- intentional source-item archive behaviour;
+- wear-event recording;
+- last-worn and wear-count views;
+- privacy-safe history correction and deletion.
+
+Status: not started.
 
 ## Phase 5 — Explainable recommendations
 

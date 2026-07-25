@@ -7,6 +7,7 @@ import { CrownMark } from "@/components/brand/crown-mark";
 import "./globals.css";
 import "./media.css";
 import "./profile.css";
+import "./outfits.css";
 
 export const metadata: Metadata = {
   title: {
@@ -38,8 +39,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </Link>
             <nav aria-label="Primary navigation" className="primary-navigation">
               <Link href="/wardrobe">Wardrobe</Link>
+              <Link href="/outfits">Outfits</Link>
               <Link href="/profile">Profile</Link>
-              <span aria-disabled="true">Outfits</span>
               <span aria-disabled="true">Planning</span>
               <span aria-disabled="true">Insights</span>
             </nav>

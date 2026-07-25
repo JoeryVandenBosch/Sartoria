@@ -31,17 +31,19 @@ All coding agents begin with `AGENTS.md`, route execution through `AI_OPERATIONS
 
 ## Delivery status
 
-The engineering foundation, wardrobe item vertical slice, production identity boundary, PostgreSQL persistence, private wardrobe media, and owner-scoped style profile are security-reviewed and validated.
+The engineering foundation, wardrobe item vertical slice, production identity boundary, PostgreSQL persistence, private wardrobe media, owner-scoped style profile, and deterministic manual outfit composition are security-reviewed and validated.
 
 Private media includes owner-scoped metadata, direct quarantine upload policies, storage verification, binary type detection, streaming malware-scanning boundaries, protected worker dispatch, short-lived read URLs, deterministic development adapters, and deletion propagation.
 
 The private style profile includes fit, colour, style, brand, material, climate, and recommendation controls; optional measurements behind explicit recommendation consent; optimistic revisions; owner-scoped JSON export and reset; PostgreSQL row-level security; and deterministic development persistence.
 
+Manual outfits include owner-verified wardrobe membership, private occasion and styling context, owner-scoped list and detail pages, revision-safe lifecycle foundations, relational PostgreSQL persistence with owner-inclusive foreign keys, forced row-level security, and deterministic in-memory development behaviour. No AI is required to create or inspect an outfit.
+
 Managed PostgreSQL, object storage, queue, scanner, secret storage, production migration execution, cross-user deployment verification, backup-retention verification, and explicit production release approval remain pending external deployment work.
 
 Local development deliberately uses explicit development identity, in-memory persistence, private development media storage, and signature-only media validation. Production modes fail closed when required database, authentication, storage, queue, worker, or scanner configuration is absent.
 
-The next product slice is deterministic manual outfit composition.
+The next product slice is outfit editing, deletion, and private wear history.
 
 ## Development
 
