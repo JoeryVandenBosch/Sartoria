@@ -11,7 +11,7 @@ Sartoria is a premium personal wardrobe and style system that helps people under
 - Crown-based identity retained as the primary logo direction
 - Personal recommendations grounded in the user’s actual wardrobe, fit, preferences, occasions, and climate
 - Explainable advice instead of opaque AI output
-- Privacy-first handling of wardrobe images, measurements, and personal data
+- Privacy-first handling of wardrobe images, measurements, travel context, and personal data
 
 ## Foundation
 
@@ -27,11 +27,12 @@ All coding agents begin with `AGENTS.md`, route execution through `AI_OPERATIONS
 - Better Auth behind a provider-neutral current-user boundary
 - Quarantine-first private object storage for wardrobe imagery
 - Provider-neutral recommendation integration with deterministic fallback
+- Deterministic travel planning independent of weather, calendar, location, or AI providers
 - Responsive, accessible premium interface
 
 ## Delivery status
 
-The engineering foundation, wardrobe item vertical slice, production identity boundary, PostgreSQL persistence, private wardrobe media, owner-scoped style profile, deterministic manual outfit composition, private outfit lifecycle, and explainable recommendation foundation are reviewed and validated.
+The engineering foundation, wardrobe item vertical slice, production identity boundary, PostgreSQL persistence, private wardrobe media, owner-scoped style profile, deterministic manual outfit composition, private outfit lifecycle, explainable recommendation foundation, and deterministic travel planning are reviewed and validated.
 
 Private media includes owner-scoped metadata, direct quarantine upload policies, storage verification, binary type detection, streaming malware-scanning boundaries, protected worker dispatch, short-lived read URLs, deterministic development adapters, and deletion propagation.
 
@@ -43,11 +44,13 @@ Outfit lifecycle adds revision-safe editing and confirmed deletion, explicit dat
 
 Explainable recommendations add an explicit private request flow, a provider-neutral gateway, versioned structured output, owner-scoped context minimisation, measurement-consent enforcement, exact item-reference validation, confidence gating, deterministic saved-outfit and wardrobe-first fallback, provenance, exclusions, correction, rejection, expiry, deletion, forced-RLS persistence, and accessible evidence views. Raw hidden reasoning is never stored.
 
-Managed PostgreSQL, object storage, queue, scanner, recommendation provider approval, egress controls, secret storage, production migration execution, cross-user deployment verification, retention approval, backup-deletion verification, and explicit production release approval remain pending external deployment work.
+Travel planning adds date-only private plans, optional broad destinations, expected climate, activity and laundry controls, deterministic category targets, wardrobe-grounded packing previews, user-controlled final item selection, honest coverage warnings, owner-inclusive PostgreSQL membership, forced RLS, list/detail history, and revision-safe deletion. It collects no coordinates, bookings, calendar tokens, travel times, companions, or live weather.
 
-Local development deliberately uses explicit development identity, in-memory persistence, private development media storage, signature-only media validation, and deterministic recommendation fallback. Production modes fail closed when required database, authentication, storage, queue, worker, scanner, or approved-provider configuration is absent.
+Managed PostgreSQL, object storage, queue, scanner, recommendation provider approval, egress controls, secret storage, production migration execution, cross-user deployment verification, travel-plan performance verification, retention approval, backup-deletion verification, and explicit production release approval remain pending external deployment work.
 
-The next product slice is Phase 6 planning and factual insights: occasion and travel planning, packing lists, climate context, wardrobe coverage, underuse, duplication, gaps, cost-per-wear, and purchase-impact analysis.
+Local development deliberately uses explicit development identity, in-memory persistence, private development media storage, signature-only media validation, deterministic recommendation fallback, and deterministic travel planning. Production modes fail closed when required database, authentication, storage, queue, worker, scanner, or approved-provider configuration is absent.
+
+The next product slice is Phase 6B factual wardrobe insights: duplication, underuse, category coverage, explainable gaps, wear frequency, cost-per-wear where cost is user-provided, and purchase-impact analysis.
 
 ## Development
 
@@ -64,7 +67,7 @@ npm run validate
 npm run test:e2e
 ```
 
-Database setup and migration instructions live in `migrations/README.md`. Private media deployment guidance lives in `docs/operations/private-media.md`. Recommendation provider, fallback, rollback, monitoring, and incident guidance lives in `docs/operations/explainable-recommendations.md`.
+Database setup and migration instructions live in `migrations/README.md`. Private media deployment guidance lives in `docs/operations/private-media.md`. Recommendation provider, fallback, rollback, monitoring, and incident guidance lives in `docs/operations/explainable-recommendations.md`. Travel-planning migration, rollback, logging, incident, and future weather-enrichment controls live in `docs/operations/travel-planning.md`.
 
 ## Documentation
 
@@ -78,7 +81,7 @@ Database setup and migration instructions live in `migrations/README.md`. Privat
 - `docs/product/` — product and brand specifications
 - `docs/features/` — acceptance-ready vertical slices
 - `docs/architecture/decisions/` — architecture decision records
-- `docs/security/` — threat models and independent reviews
+- `docs/security/` — threat models and role-separated reviews
 - `docs/operations/` — deployment and incident runbooks
 
 ## License
