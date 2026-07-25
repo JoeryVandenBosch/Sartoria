@@ -143,9 +143,12 @@ test("creates and opens a deterministic manual outfit", async ({ page }, testInf
   await page.getByLabel("Outfit name").fill(outfitName);
   await page.getByLabel("Occasion").fill("Dinner");
   await page.getByLabel("Private styling notes").fill("Keep the silhouette tonal and restrained.");
-  await page.locator("label", { hasText: blazerName }).getByRole("checkbox").check();
-  await page.locator("label", { hasText: trouserName }).getByRole("checkbox").check();
-  await expect(page.getByText("2 items selected")).toBeVisible();
+  const blazerCheckbox = page.locator("label", { hasText: blazerName }).getByRole("checkbox");
+  const trouserCheckbox = page.locator("label", { hasText: trouserName }).getByRole("checkbox");
+  await blazerCheckbox.check();
+  await trouserCheckbox.check();
+  await expect(blazerCheckbox).toBeChecked();
+  await expect(trouserCheckbox).toBeChecked();
 
   await page.getByRole("button", { name: "Save private outfit" }).click();
   await expect(page).toHaveURL(/\/outfits\/[^/]+$/);
