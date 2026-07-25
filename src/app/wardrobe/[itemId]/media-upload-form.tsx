@@ -27,6 +27,7 @@ export function MediaUploadForm({ wardrobeItemId }: Readonly<{ wardrobeItemId: s
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setMessage("");
 
     const file = inputRef.current?.files?.[0];
@@ -102,7 +103,7 @@ export function MediaUploadForm({ wardrobeItemId }: Readonly<{ wardrobeItemId: s
         );
       }
 
-      event.currentTarget.reset();
+      form.reset();
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The private upload failed.");
