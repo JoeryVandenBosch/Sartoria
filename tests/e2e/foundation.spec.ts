@@ -49,6 +49,15 @@ test("adds a wardrobe item and processes a private image", async ({ page }, test
 });
 
 test("saves, exports, reloads, and resets a private style profile", async ({ page }) => {
+  const existing = await page.request.get("/api/profile/export");
+  if (existing.ok()) {
+    const existingPayload = (await existing.json()) as { profile: { revision: number } };
+    const reset = await page.request.delete("/api/profile", {
+      data: { expectedRevision: existingPayload.profile.revision },
+    });
+    expect(reset.status()).toBe(204);
+  }
+
   await page.goto("/profile");
 
   await expect(
@@ -70,7 +79,7 @@ test("saves, exports, reloads, and resets a private style profile", async ({ pag
   await page.getByLabel("EU shoe size").fill("42");
 
   await page.getByRole("button", { name: "Save private profile" }).click();
-  await expect(page.getByText(/saved as revision 1/i)).toBeVisible();
+  await expect(page.getByText(/Private profile revision 1/i)).toBeVisible();
 
   const exported = await page.request.get("/api/profile/export");
   expect(exported.ok()).toBe(true);
