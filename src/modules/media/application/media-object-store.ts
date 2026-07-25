@@ -17,6 +17,7 @@ export type QuarantineObjectMetadata = Readonly<{
 
 export interface MediaObjectReader {
   readPrefix(key: string, maximumBytes: number): Promise<Uint8Array>;
+  streamObject(key: string): Promise<AsyncIterable<Uint8Array>>;
 }
 
 export interface MediaObjectStore extends MediaObjectReader {
