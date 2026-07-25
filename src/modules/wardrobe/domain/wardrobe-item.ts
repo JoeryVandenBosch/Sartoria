@@ -28,8 +28,8 @@ export type WardrobeItem = Readonly<{
   primaryColor: string;
   ownershipStatus: OwnershipStatus;
   fitNotes: string | null;
-  acquisitionCostMinor: number | null;
-  acquisitionCurrency: string | null;
+  acquisitionCostMinor?: number | null;
+  acquisitionCurrency?: string | null;
   createdAt: string;
 }>;
 
