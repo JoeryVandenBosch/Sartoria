@@ -10,6 +10,8 @@ type WardrobeItemPageProps = Readonly<{
   params: Promise<{ itemId: string }>;
 }>;
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Wardrobe item",
 };
