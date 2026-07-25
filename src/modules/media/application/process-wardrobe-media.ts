@@ -51,7 +51,8 @@ async function rejectAndDelete(
   return rejected;
 }
 
-export async function processNextWardrobeMedia(
+export async function processWardrobeMedia(
+  input: Readonly<{ mediaId: string; ownerId: string }>,
   dependencies: Readonly<{
     mediaRepository: WardrobeMediaRepository;
     objectStore: MediaObjectStore;
@@ -59,8 +60,12 @@ export async function processNextWardrobeMedia(
     now: () => Date;
   }>,
 ): Promise<WardrobeMedia | null> {
-  const pending = await dependencies.mediaRepository.findNextPendingScan();
-  if (!pending) {
+  const pending = await dependencies.mediaRepository.findByIdForOwner(
+    input.mediaId,
+    input.ownerId,
+  );
+
+  if (!pending || (pending.status !== "uploaded" && pending.status !== "failed")) {
     return null;
   }
 
