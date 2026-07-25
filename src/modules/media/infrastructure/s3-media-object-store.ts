@@ -264,11 +264,18 @@ export class S3MediaObjectStore implements MediaObjectStore {
 
 export function createS3MediaObjectStore(): S3MediaObjectStore {
   const configuration = readMediaStorageConfiguration();
-  const client = new S3Client({
-    region: configuration.region,
-    endpoint: configuration.endpoint,
-    forcePathStyle: configuration.forcePathStyle,
-  });
+  const client = new S3Client(
+    configuration.endpoint
+      ? {
+          region: configuration.region,
+          endpoint: configuration.endpoint,
+          forcePathStyle: configuration.forcePathStyle,
+        }
+      : {
+          region: configuration.region,
+          forcePathStyle: configuration.forcePathStyle,
+        },
+  );
 
   return new S3MediaObjectStore(client, configuration);
 }
