@@ -15,17 +15,7 @@ import {
   wardrobeItemFormSchema,
 } from "@/modules/wardrobe/transport/wardrobe-item-schema";
 
-export type WardrobeItemFormState = Readonly<{
-  status: "idle" | "error" | "success";
-  message: string;
-  fieldErrors: Readonly<Record<string, readonly string[]>>;
-}>;
-
-export const initialWardrobeItemFormState: WardrobeItemFormState = {
-  status: "idle",
-  message: "",
-  fieldErrors: {},
-};
+import type { WardrobeItemFormState } from "./form-state";
 
 function formValue(formData: FormData, name: string): string {
   const value = formData.get(name);
