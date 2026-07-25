@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 
-import type { WardrobeItem } from "@/modules/wardrobe/domain/wardrobe-item";
+import type { WardrobeItem, WardrobeCategory } from "@/modules/wardrobe/domain/wardrobe-item";
 
 import { createOutfitAction } from "./actions";
 import { initialOutfitFormState, type OutfitFormState } from "./form-state";
@@ -18,14 +18,23 @@ function fieldError(state: OutfitFormState, field: string): string | undefined {
   return state.fieldErrors[field]?.[0];
 }
 
+function groupItems(items: readonly WardrobeItem[]): ReadonlyMap<WardrobeCategory, WardrobeItem[]> {
+  const groups = new Map<WardrobeCategory, WardrobeItem[]>();
+  for (const item of items) {
+    const categoryItems = groups.get(item.category) ?? [];
+    categoryItems.push(item);
+    groups.set(item.category, categoryItems);
+  }
+  return groups;
+}
+
 export function OutfitForm({ items }: Readonly<{ items: readonly WardrobeItem[] }>) {
   const [state, formAction, pending] = useActionState(
     createOutfitAction,
     initialOutfitFormState,
   );
   const [selectedCount, setSelectedCount] = useState(0);
-
-  const groups = Map.groupBy(items, (item) => item.category);
+  const groups = groupItems(items);
 
   return (
     <form action={formAction} className="outfit-form">
