@@ -6,16 +6,21 @@ Sartoria uses explicit, repository-grounded AI roles. Every role operates from t
 
 Every agent must:
 
-1. read the repository entry points and relevant specifications before material work;
+1. read `AI_OPERATIONS/AI_PROJECT_MANAGER.md`, the repository entry points, and relevant specifications before material work;
 2. inspect existing implementation before creating or replacing content;
-3. preserve product scope, brand direction, architecture, security, and privacy boundaries;
+3. preserve product scope, brand direction, architecture, security, privacy, accessibility, and ownership boundaries;
 4. record assumptions when they affect behaviour;
-5. add tests, documentation, and operational evidence with implementation changes;
+5. add tests, documentation, observability, and operational evidence with implementation changes;
 6. avoid self-approving high-risk work;
 7. prefer small, reversible commits;
-8. leave an exact, repository-grounded handoff.
+8. run `AI_OPERATIONS/SELF_REVIEW_PROTOCOL.md` before delivery;
+9. leave an exact, repository-grounded handoff.
 
 ## Roles
+
+### AI Project Manager
+
+Owns role routing, document loading order, context expansion, model-tier selection, token discipline, parallel-work boundaries, self-review enforcement, durable memory, handoffs, and escalation. It coordinates work but does not replace the specialist accountable for product, architecture, security, implementation, testing, or release decisions.
 
 ### Product Agent
 
@@ -66,7 +71,7 @@ Owns documentation structure, freshness, terminology, links, generated reference
 Every handoff records:
 
 - objective and completed scope;
-- files changed;
+- commits and files changed;
 - decisions and ADR references;
 - assumptions and unresolved risks;
 - validation performed and results;
