@@ -28,8 +28,8 @@ export type WardrobeItem = Readonly<{
   primaryColor: string;
   ownershipStatus: OwnershipStatus;
   fitNotes: string | null;
-  acquisitionCostMinor?: number | null;
-  acquisitionCurrency?: string | null;
+  acquisitionCostMinor?: number | null | undefined;
+  acquisitionCurrency?: string | null | undefined;
   createdAt: string;
 }>;
 
@@ -37,12 +37,12 @@ export type NewWardrobeItem = Readonly<{
   ownerId: string;
   category: WardrobeCategory;
   name: string;
-  brand?: string | null;
+  brand?: string | null | undefined;
   primaryColor: string;
-  ownershipStatus?: OwnershipStatus;
-  fitNotes?: string | null;
-  acquisitionCostMinor?: number | null;
-  acquisitionCurrency?: string | null;
+  ownershipStatus?: OwnershipStatus | undefined;
+  fitNotes?: string | null | undefined;
+  acquisitionCostMinor?: number | null | undefined;
+  acquisitionCurrency?: string | null | undefined;
 }>;
 
 export type WardrobeItemFactoryDependencies = Readonly<{
