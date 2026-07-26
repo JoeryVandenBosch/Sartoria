@@ -1,6 +1,6 @@
 # Sartoria Claude Implementation Contract
 
-Read `AGENTS.md`, `AI_OPERATIONS/AI_PROJECT_MANAGER.md`, `AI_AGENTS.md`, `README.md`, `VISION.md`, `ROADMAP.md`, `ARCHITECTURE.md`, active ADRs, the latest handoff in `docs/handoffs/`, and the relevant feature specification before editing.
+Read `AGENTS.md`, `AI_OPERATIONS/AI_PROJECT_MANAGER.md`, `AI_AGENTS.md`, `README.md`, `VISION.md`, `ROADMAP.md`, `ARCHITECTURE.md`, `docs/product/figma-collaboration.md`, active ADRs, the latest handoff in `docs/handoffs/`, and the relevant feature specification before editing.
 
 ## Execution mode
 
@@ -10,7 +10,7 @@ Read `AGENTS.md`, `AI_OPERATIONS/AI_PROJECT_MANAGER.md`, `AI_AGENTS.md`, `README
 - Take the lead on routine engineering decisions that are already covered by repository architecture and product rules.
 - Do not request approval for every file or commit. Ask only when blocked by missing credentials, an irreversible external action, or a genuinely unresolved high-impact product decision.
 - Use a branch and pull request, commit coherent progress continuously, run CI, fix concrete failures, review the final diff, and merge only when the required gate is green.
-- Never claim validation, deployment, or external infrastructure evidence that was not actually produced.
+- Never claim validation, deployment, Figma review, design approval, or external infrastructure evidence that was not actually produced.
 
 ## Product constraints
 
@@ -19,6 +19,19 @@ Read `AGENTS.md`, `AI_OPERATIONS/AI_PROJECT_MANAGER.md`, `AI_AGENTS.md`, `README
 - Keep the application English-first unless an approved localisation slice changes that boundary.
 - Preserve privacy, owner isolation, explainability, accessibility, deterministic fallbacks, and provider-neutral AI integration.
 - Primary wardrobe, outfit, planning, and insight workflows must remain usable without an AI provider.
+
+## Connected Figma workflow
+
+The repository owner has Figma connected to Claude. Use it when accessible and when a task has meaningful visual, interaction, responsive, component, or prototype impact.
+
+- Read `docs/product/figma-collaboration.md` before using the connected Figma workspace.
+- Inspect existing Sartoria files, pages, components, variables, and approved frames before creating new design artefacts.
+- Preserve the existing design system and approved brand direction; do not create a parallel visual system.
+- Repository product, architecture, security, privacy, and feature documents remain authoritative for behaviour and scope.
+- Approved Figma frames may guide visual and interaction implementation but are not proof of working code, tests, deployment, or release approval.
+- Use synthetic data only. Never place private wardrobe content, measurements, emails, travel details, credentials, signed URLs, production screenshots, or staging evidence in Figma.
+- Record Figma file, page, section, frame links, design status, accessibility decisions, and intentional implementation differences in the handoff when Figma is used.
+- Figma is not a runtime dependency and must not block non-visual domain, infrastructure, security, migration, or observability work.
 
 ## Implementation rules
 
@@ -31,7 +44,7 @@ Read `AGENTS.md`, `AI_OPERATIONS/AI_PROJECT_MANAGER.md`, `AI_AGENTS.md`, `README
 - Keep wardrobe images, style profiles, travel context, wear history, recommendations, and staging evidence private by default.
 - Do not log images, measurements, prompt payloads, secrets, passwords, bearer tokens, fit notes, private wardrobe content, or presigned URLs.
 - Add tests, accessibility coverage, documentation, observability, rollback guidance, and migration evidence with behaviour.
-- Never invent missing product rules, credentials, integrations, infrastructure evidence, or user consent.
+- Never invent missing product rules, credentials, integrations, infrastructure evidence, design approval, or user consent.
 - Create an ADR for material technology, dependency, persistence, authentication, provider, infrastructure, or boundary decisions.
 - Run `AI_OPERATIONS/SELF_REVIEW_PROTOCOL.md` before delivery.
 - Require independent review for risk levels 3 and 4. Risk level 4 requires explicit human release approval.
@@ -60,7 +73,8 @@ The repository is ready for continued coding. A live staging environment is not 
 1. Read the latest Claude-readiness handoff in `docs/handoffs/`.
 2. When approved infrastructure credentials and a host are available, execute issue `#17` exactly through the staging runbook.
 3. When external infrastructure is unavailable, continue the next repository-owned closed-beta readiness slice from `ROADMAP.md`; do not wait or redesign the product.
-4. Keep public community and discovery features out of V1.
+4. Use connected Figma only where it adds real design or interaction value.
+5. Keep public community and discovery features out of V1.
 
 ## Commands
 
@@ -90,4 +104,4 @@ Deployment-only commands require the documented environment and must not be simu
 
 ## Completion evidence
 
-A change is complete only when acceptance criteria are met, relevant validation passes, affected documentation is current, security and privacy implications are addressed, migrations and rollback are covered, the final diff is reviewed, unresolved risks are explicit, and the exact next action is recorded.
+A change is complete only when acceptance criteria are met, relevant validation passes, affected documentation is current, security and privacy implications are addressed, migrations and rollback are covered, Figma evidence is recorded when used, the final diff is reviewed, unresolved risks are explicit, and the exact next action is recorded.
