@@ -33,12 +33,14 @@ function underuseLabel(value: UnderuseStatus): string {
   return labels[value];
 }
 
-function money(amountMinor: number | null, currency: string | null): string {
-  if (amountMinor === null || currency === null) {
+function money(amountMinor: number | null, currency: string | null | undefined): string {
+  if (amountMinor === null || !currency) {
     return "Not available";
   }
   try {
-    return new Intl.NumberFormat("en", { style: "currency", currency }).format(amountMinor / 100);
+    return new Intl.NumberFormat("en-BE", { style: "currency", currency }).format(
+      amountMinor / 100,
+    );
   } catch {
     return `${currency} ${(amountMinor / 100).toFixed(2)}`;
   }
@@ -48,9 +50,10 @@ function date(value: string | null): string {
   if (!value) {
     return "Not recorded";
   }
-  return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "UTC" }).format(
-    new Date(`${value}T00:00:00.000Z`),
-  );
+  return new Intl.DateTimeFormat("en-BE", {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(`${value}T00:00:00.000Z`));
 }
 
 export default async function InsightsPage() {
@@ -163,9 +166,7 @@ export default async function InsightsPage() {
                       <span>{cluster.itemIds.length} items</span>
                     </div>
                     <h3>{label(cluster.category)} · {label(cluster.normalizedColour)}</h3>
-                    <ul>
-                      {cluster.matchingFacts.map((fact) => <li key={fact}>{fact}</li>)}
-                    </ul>
+                    <ul>{cluster.matchingFacts.map((fact) => <li key={fact}>{fact}</li>)}</ul>
                     <div className="insight-source-links">
                       {cluster.itemIds.map((itemId) => {
                         const item = items.get(itemId);
@@ -275,9 +276,7 @@ export default async function InsightsPage() {
               <div className="eyebrow">Methodology</div>
               <h2 id="methodology-title">What these numbers mean.</h2>
             </div>
-            <ol>
-              {insights.methodology.map((entry) => <li key={entry}>{entry}</li>)}
-            </ol>
+            <ol>{insights.methodology.map((entry) => <li key={entry}>{entry}</li>)}</ol>
           </section>
         </>
       )}
