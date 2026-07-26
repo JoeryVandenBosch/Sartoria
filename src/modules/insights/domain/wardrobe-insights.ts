@@ -41,7 +41,7 @@ export type ItemUsageInsight = Readonly<{
   lastWornOn: string | null;
   underuseStatus: UnderuseStatus;
   costPerWearMinor: number | null;
-  costCurrency: string | null;
+  costCurrency: string | null | undefined;
 }>;
 
 export type WishListImpact = Readonly<{
