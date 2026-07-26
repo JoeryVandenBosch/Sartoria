@@ -47,6 +47,15 @@ jobs:
           CLAMAV_HOST: clamav.internal
         run: npm run verify:production-env
 
+      - name: Validate staging service definition
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp deploy/staging/.env.example deploy/staging/.env
+          cp deploy/staging/staging.env.example deploy/staging/staging.env
+          docker compose --env-file deploy/staging/.env -f deploy/staging/compose.yml config --quiet
+          rm deploy/staging/.env deploy/staging/staging.env
+
       - name: Lint
         shell: bash
         run: |
@@ -70,6 +79,9 @@ jobs:
         run: |
           set -o pipefail
           npm run build 2>&1 | tee validation-build.log
+
+      - name: Verify standalone deployment artifact
+        run: test -f .next/standalone/server.js
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
