@@ -13,7 +13,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-    networks: [private]
+    networks: [data]
 
   object-storage:
     image: ${MINIO_IMAGE:?Set MINIO_IMAGE to an approved immutable image reference}
@@ -24,7 +24,7 @@ services:
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     volumes:
       - object-data:/data
-    networks: [private]
+    networks: [edge, data]
 
   object-storage-init:
     image: ${MINIO_CLIENT_IMAGE:?Set MINIO_CLIENT_IMAGE to an approved immutable image reference}
@@ -40,14 +40,14 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
       MEDIA_S3_BUCKET: ${MEDIA_S3_BUCKET}
-    networks: [private]
+    networks: [data]
 
   clamav:
     image: ${CLAMAV_IMAGE:?Set CLAMAV_IMAGE to an approved immutable image reference}
     restart: unless-stopped
     volumes:
       - clamav-data:/var/lib/clamav
-    networks: [private]
+    networks: [data]
 
   app:
     build:
@@ -66,7 +66,7 @@ services:
         condition: service_started
     expose:
       - "3000"
-    networks: [private]
+    networks: [edge, data]
 
   auth-migrations:
     profiles: ["operations"]
@@ -80,7 +80,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    networks: [private]
+    networks: [data]
 
   app-migrations:
     profiles: ["operations"]
@@ -94,7 +94,7 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    networks: [private]
+    networks: [data]
 
   edge:
     image: ${CADDY_IMAGE:?Set CADDY_IMAGE to an approved immutable image reference}
@@ -114,11 +114,12 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data
       - caddy-config:/config
-    networks: [private]
+    networks: [edge]
 
 networks:
-  private:
-    internal: false
+  edge:
+  data:
+    internal: true
 
 volumes:
   postgres-data:
