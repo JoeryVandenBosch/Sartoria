@@ -29,6 +29,24 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Verify production environment contract
+        env:
+          SARTORIA_AUTH_MODE: better-auth
+          SARTORIA_PERSISTENCE_MODE: postgres
+          SARTORIA_MEDIA_MODE: production
+          SARTORIA_RECOMMENDATION_MODE: fallback
+          DATABASE_URL: postgresql://user:password@database.internal:5432/sartoria
+          DATABASE_SSL_MODE: require
+          BETTER_AUTH_URL: https://sartoria.example.test
+          BETTER_AUTH_SECRET: 0123456789abcdef0123456789abcdef
+          MEDIA_S3_BUCKET: sartoria-private-media
+          MEDIA_S3_REGION: eu-west-1
+          MEDIA_PROCESSING_QUEUE_URL: https://worker.example.test/api/media/process
+          MEDIA_PROCESSING_QUEUE_TOKEN: 0123456789abcdef0123456789abcdef
+          MEDIA_WORKER_TOKEN: fedcba9876543210fedcba9876543210
+          CLAMAV_HOST: clamav.internal
+        run: npm run verify:production-env
+
       - name: Lint
         shell: bash
         run: |
