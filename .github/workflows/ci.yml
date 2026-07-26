@@ -103,6 +103,9 @@ jobs:
           CADDY_IMAGE="caddy@sha256:$digest" \
           npm run verify:production-env
 
+      - name: Verify staging package repository contract
+        run: npm run verify:staging-package
+
       - name: Validate staging service definition
         shell: bash
         run: |
