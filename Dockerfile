@@ -1,4 +1,5 @@
-FROM node:24-alpine AS base
+ARG NODE_IMAGE
+FROM ${NODE_IMAGE} AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
@@ -14,7 +15,7 @@ FROM dependencies AS migrations
 COPY . .
 CMD ["npm", "run", "db:migrate"]
 
-FROM node:24-alpine AS runtime
+FROM ${NODE_IMAGE} AS runtime
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \

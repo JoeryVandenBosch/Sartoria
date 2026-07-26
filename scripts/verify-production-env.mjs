@@ -10,6 +10,15 @@ const required = [
   "CLAMAV_HOST",
 ];
 
+const stagingImageVariables = [
+  "NODE_IMAGE",
+  "POSTGRES_IMAGE",
+  "MINIO_IMAGE",
+  "MINIO_CLIENT_IMAGE",
+  "CLAMAV_IMAGE",
+  "CADDY_IMAGE",
+];
+const immutableDigestPattern = /@sha256:[a-f0-9]{64}$/iu;
 const errors = [];
 
 function value(name) {
@@ -23,6 +32,17 @@ for (const name of required) {
 const deploymentEnvironment = value("SARTORIA_DEPLOYMENT_ENV");
 if (!["staging", "production"].includes(deploymentEnvironment)) {
   errors.push("SARTORIA_DEPLOYMENT_ENV must be staging or production.");
+}
+
+if (deploymentEnvironment === "staging") {
+  for (const name of stagingImageVariables) {
+    const reference = value(name);
+    if (!reference) {
+      errors.push(`${name} is required in staging.`);
+    } else if (!immutableDigestPattern.test(reference)) {
+      errors.push(`${name} must end with an immutable @sha256 digest.`);
+    }
+  }
 }
 
 if (value("SARTORIA_AUTH_MODE") !== "better-auth") {
@@ -105,9 +125,9 @@ if (recommendationMode === "provider") {
 }
 
 if (errors.length > 0) {
-  console.error("Sartoria production environment verification failed:\n");
+  console.error("Sartoria deployed environment verification failed:\n");
   for (const error of errors) console.error(`- ${error}`);
   process.exit(1);
 }
 
-console.log("Sartoria production environment contract is valid.");
+console.log("Sartoria deployed environment contract is valid.");

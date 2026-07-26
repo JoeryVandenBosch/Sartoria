@@ -18,6 +18,8 @@
     "db:migrate": "node scripts/migrate.mjs",
     "db:auth:migrate": "auth migrate",
     "verify:production-env": "node scripts/verify-production-env.mjs",
+    "verify:staging-images": "node scripts/verify-staging-images.mjs",
+    "verify:staging-package": "node scripts/verify-staging-package.mjs",
     "verify:staging": "node scripts/verify-staging.mjs",
     "validate": "npm run lint && npm run typecheck && npm test && npm run build"
   },

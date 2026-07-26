@@ -1,208 +1,177 @@
 # Sartoria Delivery Roadmap
 
+## Delivery rule
+
+Complete one reviewable vertical slice at a time. Preserve privacy, owner isolation, accessibility, explainability, deterministic fallbacks, and provider-neutral boundaries. Do not duplicate completed work or introduce public community features into private V1.
+
 ## Phase 0 — Engineering foundation
 
-Exit criteria:
+Delivered:
 
-- AIFramework operating contracts are present and enforced;
-- Next.js and TypeScript scaffold builds in strict mode;
-- linting, type checking, unit tests, and CI are active;
-- architecture, security, privacy, accessibility, and observability foundations are documented;
-- the first vertical slice has acceptance criteria and an ADR-backed implementation plan.
+- AIFramework operating contracts and agent entry points;
+- Next.js App Router and strict TypeScript scaffold;
+- lint, type checking, unit/application tests, Chromium E2E, build, and GitHub Actions;
+- modular-monolith architecture, security, privacy, accessibility, and observability foundations;
+- ADR, feature-specification, review, handoff, and rollback conventions.
 
-Status: complete.
+Status: **complete and validated**.
 
-## Phase 1 — Wardrobe item foundation
+## Phase 1 — Wardrobe and durable identity
 
-Deliver the first complete vertical slice: add and view a wardrobe item.
+Delivered:
 
-Scope:
+- owner-scoped wardrobe and wish-list items;
+- category, name, brand, colour, status, fit notes, and optional user-provided acquisition cost;
+- list, detail, create, correction, and source-link experiences;
+- PostgreSQL repositories, Better Auth current-user boundary, and production fail-closed modes;
+- owner-scoped queries and forced PostgreSQL row-level security;
+- deterministic development identity and in-memory persistence.
 
-- wardrobe item domain model;
-- authenticated ownership boundary or an explicit development identity adapter;
-- category, name, brand, colour, ownership status, and optional fit notes;
-- create-item use case;
-- wardrobe list and item detail;
-- transport validation;
-- deterministic behaviour without AI;
-- unit, integration, and accessibility tests;
-- privacy-safe observability.
-
-Status: complete and validated in CI.
-
-## Phase 1.5 — Production identity and persistence
-
-- PostgreSQL connection and migration foundation;
-- durable wardrobe repository adapter;
-- Better Auth server integration;
-- provider-neutral current-user boundary;
-- owner-scoped queries and PostgreSQL row-level security;
-- production fail-closed configuration;
-- deployment, rollback, and operational guidance.
-
-Exit criteria:
-
-- local development remains deterministic without external infrastructure;
-- production cannot use development identity or in-memory persistence;
-- lint, type checking, tests, build, and end-to-end checks are green;
-- independent security and privacy review is recorded.
-
-Status: implementation complete and security-reviewed; managed infrastructure provisioning and production release approval remain pending.
+Status: **complete, reviewed, merged, and CI-validated**. Live migration and deployed owner-isolation evidence remain part of Phase 7A.
 
 ## Phase 2 — Private media
 
-- secure image upload initiation;
-- media ownership and lifecycle metadata;
-- type and size validation;
-- malware-scanning boundary;
-- short-lived purpose-limited access;
-- deletion propagation.
+Delivered:
 
-Exit criteria:
+- owner-scoped upload initiation and lifecycle metadata;
+- quarantine-first S3-compatible storage;
+- size, metadata, declared-type, binary-type, and ownership verification;
+- protected worker dispatch, streaming ClamAV scanning, promotion, and rejection;
+- short-lived purpose-limited private access and deletion propagation;
+- deterministic development adapters and complete private-media browser flow.
 
-- uploads enter a non-readable quarantine prefix;
-- storage metadata, content length, declared type, and owner are verified;
-- binary type detection and malware scanning gate promotion;
-- only ready media receive owner-authorised short-lived URLs;
-- deletion removes all object variants and records terminal state;
-- local development and CI use deterministic adapters;
-- lint, strict types, tests, production build, and private-media E2E are green;
-- independent Security and Privacy review is recorded.
-
-Status: implementation complete, security-reviewed, and validated in CI; production storage, queue, scanner, infrastructure verification, and release approval remain pending.
+Status: **complete, security-reviewed, merged, and CI-validated**. Live bucket, scanner, CORS, signature, and isolation proof remain part of Phase 7A.
 
 ## Phase 3 — Profile and preferences
 
-- fit, colour, style, brand, climate, and exclusion preferences;
-- user-controlled corrections;
-- privacy controls and data export foundations.
+Delivered:
 
-Exit criteria:
+- fit, colour, style, brand, material, climate, and exclusion preferences;
+- optional measurements behind explicit recommendation consent;
+- optimistic revisions, owner-scoped export, correction, and reset;
+- forced-RLS PostgreSQL persistence and deterministic development persistence.
 
-- all profile reads, writes, exports, and resets are owner-scoped;
-- PostgreSQL row-level security is enabled and forced;
-- stale writes and resets fail through optimistic revision checks;
-- measurements are optional and excluded from recommendation data without explicit consent;
-- preferred and avoided signals cannot conflict;
-- the user can save, revise, export, and reset the profile;
-- local development remains deterministic without external infrastructure;
-- lint, strict types, unit/application tests, production build, and profile E2E are green;
-- independent Security and Privacy review is recorded.
+Status: **complete, reviewed, merged, and CI-validated**.
 
-Status: implementation complete, security-reviewed, and validated in CI; production migration execution and release approval remain pending.
+## Phase 4 — Outfit composition and wear history
 
-## Phase 4 — Outfit composition
+Delivered:
 
-### Phase 4A — Deterministic manual outfits
+- owner-verified manual outfit creation from available wardrobe items;
+- private occasion and styling context;
+- revision-safe editing, confirmed deletion, and intentional archive behaviour;
+- explicit date-only, non-future private wear events;
+- factual wear count, last-worn views, correction, and cascade deletion;
+- owner-inclusive relational integrity and forced RLS.
 
-- manual outfit creation from two to twelve owned wardrobe items;
-- optional occasion and private styling notes;
-- owner-scoped list and detail experiences;
-- relational membership integrity and optimistic revisions;
-- no AI dependency for core workflows.
-
-Exit criteria:
-
-- every selected wardrobe item is verified server-side for ownership and availability;
-- duplicate, missing, archived, and cross-owner references are rejected;
-- PostgreSQL outfit and membership tables use owner-inclusive foreign keys;
-- row-level security is enabled and forced on both tables;
-- local development uses deterministic in-memory persistence;
-- lint, strict types, 54 unit/application tests, production build, and outfit E2E are green;
-- independent Security and Privacy review is recorded.
-
-Status: implementation complete, security-reviewed, merged, and validated in CI; production migration execution and release approval remain pending.
-
-### Phase 4B — Outfit lifecycle and wear history
-
-- revision-safe outfit editing and deletion;
-- intentional source-item archive behaviour;
-- explicit date-only wear-event recording;
-- factual last-worn and wear-count views;
-- privacy-safe history correction and cascade deletion.
-
-Exit criteria:
-
-- edit and delete operations are owner-scoped and revision-protected;
-- edited compositions revalidate all wardrobe memberships;
-- archived items remain factual on existing views but cannot enter a new revision;
-- wear events are explicit, date-only, non-future, and owner-scoped;
-- no calendar, location, precise time, or automatic tracking is collected;
-- users can remove individual events and delete the outfit with its history;
-- PostgreSQL wear history uses an owner-inclusive cascade foreign key and forced RLS;
-- local development remains deterministic without external infrastructure;
-- lint, strict types, 65 unit/application tests, production build, and lifecycle E2E are green;
-- independent Security and Privacy review is recorded.
-
-Status: implementation complete, security-reviewed, merged, and validated in CI; production migration execution and release approval remain pending.
+Status: **complete, reviewed, merged, and CI-validated**.
 
 ## Phase 5 — Explainable recommendations
 
-- provider-neutral recommendation gateway;
-- versioned, structured, and schema-validated outputs;
-- owner-scoped minimal context with measurement-consent enforcement;
-- source-item references, reasoning, exclusions, confidence, and provenance;
+Delivered:
+
+- explicit private recommendation requests;
+- provider-neutral gateway with versioned structured outputs;
+- owner-scoped minimal context and measurement-consent enforcement;
+- source-item references, concise explanation, exclusions, confidence, and provenance;
+- strict schema, availability, owner, duplicate, confidence, size, timeout, and HTTPS validation;
 - deterministic saved-outfit and wardrobe-first fallback;
 - correction, rejection, expiry, deletion, and private history;
-- bounded HTTPS transport and fail-closed provider configuration.
+- forced-RLS persistence and no storage of hidden reasoning.
+
+Status: **complete, reviewed, merged, and CI-validated**. Provider mode remains disabled until separate privacy, security, egress, retention, and vendor approval is recorded.
+
+## Phase 6A — Deterministic travel planning and packing
+
+Delivered:
+
+- date-only private travel plans with bounded optional destination labels;
+- expected climate, activities, and laundry controls;
+- deterministic category targets and wardrobe-grounded preview;
+- user-controlled final selection and honest coverage warnings;
+- owner-inclusive membership integrity, forced RLS, list/detail history, and revision-safe deletion;
+- no booking, coordinate, companion, calendar, live-weather, or AI dependency.
+
+Status: **complete, reviewed, merged, and CI-validated**.
+
+## Phase 6B — Factual wardrobe insights
+
+Delivered:
+
+- broad category coverage and explainable gaps;
+- exact and broader duplicate signals;
+- current-membership wear attribution, wear frequency, and underuse;
+- optional cost-per-wear only from user-provided acquisition facts;
+- deterministic wish-list purchase-impact analysis;
+- source facts, correction links, methodology, and deterministic ordering.
+
+Status: **complete, reviewed, merged, and CI-validated**.
+
+## Phase 7A — Private staging deployment and acceptance
+
+Repository-delivered:
+
+- fail-closed production environment verifier;
+- immutable standalone non-root application image;
+- HTTPS Caddy edge, PostgreSQL, private MinIO, ClamAV, bucket bootstrap, and migration jobs;
+- liveness and database-readiness endpoints;
+- exact migration, smoke, rollback, stop-condition, and evidence runbooks;
+- live staging verifier for HTTPS headers, health, bootstrap state, and anonymous bucket denial;
+- staging-only, one-time, bearer-protected Better Auth bootstrap for an owner and isolation-test user;
+- transactional pending/completed audit state without passwords or tokens;
+- public sign-up remains disabled.
+
+External acceptance tracked by issue `#17`:
+
+- choose host and region;
+- configure DNS, TLS, ingress restrictions, digest-pinned images, secret storage, and off-host backups;
+- run migrations and bootstrap both identities;
+- prove every private workflow and cross-owner denial;
+- prove restart persistence and database/object-storage restoration;
+- retain the required evidence and name the staging operator and incident contact.
+
+Status: **repository package complete and CI-validated; live staging not yet accepted**.
+
+## Phase 7B — Closed-beta readiness
+
+This is the next repository-owned coding phase when external staging inputs are unavailable.
+
+Planned vertical slices, in order:
+
+1. **Operational observability** — structured privacy-safe application events, health metrics, scanner and queue signals, deployment identifiers, alert thresholds, and a documented provider-neutral sink.
+2. **Bounded rate limiting** — owner, IP, and internal-endpoint protections with deterministic local adapters, explicit failure behaviour, tests, and operator controls.
+3. **Invitation-controlled onboarding** — private account invitations and lifecycle without enabling public sign-up; expiry, single use, audit, revocation, and owner isolation are mandatory.
+4. **Backup automation interfaces** — provider-neutral scheduled backup, verification, retention, restore-rehearsal evidence, and failure alerts; never claim backup success without provider evidence.
+5. **Privacy and retention controls** — approved retention schedule, account deletion workflow completion, private-media deletion verification, support process, privacy notice, and terms.
+6. **Closed-beta release gate** — complete staging evidence, named operators, incident contacts, support process, deployment rehearsal, security review, and explicit human release approval.
 
 Exit criteria:
 
-- every request is explicitly initiated and owner identity is resolved server-side;
-- provider context excludes account identity, credentials, private notes, media data, and unrelated history;
-- measurements are included only with explicit recommendation consent;
-- every returned item identifier is verified against the supplied owner-scoped available set;
-- malformed, duplicate, unknown, low-confidence, failed, and timed-out provider results activate fallback;
-- provider requests and responses are capped at 64 KiB and production endpoints require HTTPS;
-- PostgreSQL recommendation persistence enables and forces RLS;
-- users can inspect provenance and confidence, correct, reject, and delete results;
-- raw hidden reasoning is never stored;
-- local development remains deterministic without external infrastructure;
-- lint, strict types, 75 unit/application tests, production build, and 6 browser flows are green;
-- Architecture, Security, Privacy, and Product review is recorded.
+- each slice has acceptance criteria, tests, operations guidance, rollback, and review evidence;
+- no public sign-up, community, discovery, or public wardrobe sharing enters V1;
+- lint, strict types, unit/application tests, build, Chromium E2E, and deployment contract checks are green;
+- live staging issue `#17` is complete before closed-beta acceptance.
 
-Status: implementation complete, reviewed, merged, and validated in CI; provider approval, production migration, egress controls, secret management, deployed isolation tests, retention approval, and release approval remain pending.
+Status: **not started; approved next repository-owned phase**.
 
-## Phase 6 — Planning and insights
+## Phase 8 — Product refinement after closed beta
 
-### Phase 6A — Deterministic travel planning and packing
+Candidate work after Phase 7B evidence:
 
-- date-only owner-scoped travel plans;
-- optional broad destination labels;
-- manual climate expectation, activity contexts, and laundry access;
-- deterministic category targets and wardrobe-grounded packing preview;
-- user-controlled final item selection;
-- coverage warnings without fabricated items;
-- private list, detail, and revision-safe deletion;
-- no weather, calendar, precise-location, booking, or AI dependency.
+- mobile-first wardrobe capture and editing refinement;
+- faster outfit composition and comparison;
+- richer deterministic styling rules and preference correction;
+- optional approved weather enrichment that cannot block packing;
+- internationalisation preparation;
+- accessibility and performance refinements from real beta evidence.
 
-Exit criteria:
+Status: **backlog; prioritise from observed private-beta needs**.
 
-- every plan is explicitly created and owner identity is resolved server-side;
-- dates are valid, date-only, ordered, and limited to sixty days;
-- destination, notes, activities, warnings, and packing membership are bounded;
-- preview uses only current-owner items with status `owned`;
-- final selection is reverified for owner and availability before persistence;
-- the same inputs and wardrobe state produce the same ordered suggestion;
-- missing category coverage produces text warnings and never fabricated items;
-- PostgreSQL plan and membership tables use owner-inclusive foreign keys and forced RLS;
-- local development remains deterministic without external infrastructure;
-- lint, strict types, domain/application tests, production build, and complete browser flow are green;
-- Architecture, Security, Privacy, and Product review is recorded.
+## Explicitly outside private V1
 
-Status: implementation complete, reviewed, and validated in CI; production migration, deployed isolation, logging, performance, retention, backup, restore, and release approval remain pending.
-
-### Phase 6B — Factual wardrobe insights
-
-- duplication and near-duplication indicators;
-- underuse and wear-frequency summaries;
-- category coverage and explainable gaps;
-- cost-per-wear where user-provided cost data exists;
-- purchase-impact analysis before adding a wish-list item;
-- deterministic calculations with source facts and correction paths.
-
-Status: not started.
-
-## Delivery rule
-
-Complete one reviewable vertical slice at a time. External providers must remain optional, bounded, explainable, and unable to compromise deterministic core workflows.
+- public community profiles;
+- social feeds, follows, likes, or public comments;
+- public wardrobe or outfit discovery;
+- marketplace, affiliate, or advertising features;
+- silent background tracking of wear, location, calendar, purchases, or travel;
+- unreviewed AI providers or autonomous changes to user-owned facts.
