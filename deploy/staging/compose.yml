@@ -97,6 +97,7 @@ services:
       - app
       - object-storage
     environment:
+      ACME_EMAIL: ${ACME_EMAIL}
       STAGING_HOST: ${STAGING_HOST}
       STAGING_STORAGE_HOST: ${STAGING_STORAGE_HOST}
     ports:
