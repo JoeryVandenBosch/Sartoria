@@ -50,7 +50,8 @@ The private MVP is implemented and CI-validated:
 - PostgreSQL persistence with forced row-level security;
 - Better Auth with public sign-up disabled;
 - staging-only audited bootstrap for the owner and isolation-test identities;
-- standalone non-root container, HTTPS edge, PostgreSQL, private object storage, ClamAV, migrations, health probes, and staging verification tooling.
+- standalone non-root container with an explicit digest-pinned Node image input;
+- segmented HTTPS edge and internal data networks for PostgreSQL, private object storage, ClamAV, migrations, health probes, and staging verification tooling.
 
 The repository is ready for continued coding. A live staging environment is not yet accepted until external provisioning and every checkbox in issue `#17` are complete.
 
@@ -79,6 +80,7 @@ Deployment-only commands:
 
 ```bash
 npm run verify:production-env
+npm run verify:staging-images
 npm run verify:staging
 npm run db:auth:migrate
 npm run db:migrate
