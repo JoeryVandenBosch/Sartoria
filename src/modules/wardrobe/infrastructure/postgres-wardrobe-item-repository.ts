@@ -17,8 +17,8 @@ type WardrobeItemRow = Readonly<{
   primary_color: string;
   ownership_status: string;
   fit_notes: string | null;
-  acquisition_cost_minor: number | string | null;
-  acquisition_currency: string | null;
+  acquisition_cost_minor?: number | string | null;
+  acquisition_currency?: string | null;
   created_at: Date | string;
 }>;
 
@@ -34,8 +34,8 @@ function enumValue<Value extends string>(
   return value as Value;
 }
 
-function acquisitionCost(value: number | string | null): number | null {
-  if (value === null) {
+function acquisitionCost(value: number | string | null | undefined): number | null {
+  if (value == null) {
     return null;
   }
   const numeric = typeof value === "number" ? value : Number(value);
@@ -65,7 +65,7 @@ function mapRow(row: WardrobeItemRow): WardrobeItem {
     ),
     fitNotes: row.fit_notes,
     acquisitionCostMinor: acquisitionCost(row.acquisition_cost_minor),
-    acquisitionCurrency: row.acquisition_currency,
+    acquisitionCurrency: row.acquisition_currency ?? null,
     createdAt,
   });
 }
@@ -137,8 +137,8 @@ export class PostgresWardrobeItemRepository implements WardrobeItemRepository {
           item.primaryColor,
           item.ownershipStatus,
           item.fitNotes,
-          item.acquisitionCostMinor,
-          item.acquisitionCurrency,
+          item.acquisitionCostMinor ?? null,
+          item.acquisitionCurrency ?? null,
           item.createdAt,
         ],
       );
