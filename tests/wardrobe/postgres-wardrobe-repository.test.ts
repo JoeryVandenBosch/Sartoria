@@ -53,6 +53,8 @@ const item: WardrobeItem = {
   primaryColor: "Navy",
   ownershipStatus: "owned",
   fitNotes: null,
+  acquisitionCostMinor: null,
+  acquisitionCurrency: null,
   createdAt: "2026-07-25T12:00:00.000Z",
 };
 
@@ -83,6 +85,8 @@ describe("PostgresWardrobeItemRepository", () => {
       "Navy",
       "owned",
       null,
+      null,
+      null,
       "2026-07-25T12:00:00.000Z",
     ]);
     expect(session.released).toBe(true);
@@ -104,6 +108,8 @@ describe("PostgresWardrobeItemRepository", () => {
             primary_color: "Navy",
             ownership_status: "owned",
             fit_notes: null,
+            acquisition_cost_minor: null,
+            acquisition_currency: null,
             created_at: new Date("2026-07-25T12:00:00.000Z"),
           },
         ],
