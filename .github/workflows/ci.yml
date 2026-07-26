@@ -49,6 +49,30 @@ jobs:
           CLAMAV_HOST: clamav.internal
         run: npm run verify:production-env
 
+      - name: Verify immutable staging image contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          digest="$(printf 'a%.0s' {1..64})"
+          NODE_IMAGE="node@sha256:$digest" \
+          POSTGRES_IMAGE="postgres@sha256:$digest" \
+          MINIO_IMAGE="minio@sha256:$digest" \
+          MINIO_CLIENT_IMAGE="mc@sha256:$digest" \
+          CLAMAV_IMAGE="clamav@sha256:$digest" \
+          CADDY_IMAGE="caddy@sha256:$digest" \
+          npm run verify:staging-images
+
+          if NODE_IMAGE=node:24-alpine \
+            POSTGRES_IMAGE=postgres:17-alpine \
+            MINIO_IMAGE=minio/minio:latest \
+            MINIO_CLIENT_IMAGE=minio/mc:latest \
+            CLAMAV_IMAGE=clamav/clamav:stable \
+            CADDY_IMAGE=caddy:2-alpine \
+            npm run verify:staging-images; then
+            echo "Floating staging image references were accepted unexpectedly."
+            exit 1
+          fi
+
       - name: Validate staging service definition
         shell: bash
         run: |
