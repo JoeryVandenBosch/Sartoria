@@ -1,13 +1,29 @@
 import { z } from "zod";
 
-export const ownerBootstrapRequestSchema = z
+const bootstrapIdentitySchema = z
   .object({
     name: z.string().trim().min(1, "Name is required").max(120),
     email: z.string().trim().toLowerCase().email().max(320),
     password: z.string().min(12).max(128),
-    operatorReference: z.string().trim().min(1).max(160).optional(),
   })
   .strict();
+
+export const ownerBootstrapRequestSchema = z
+  .object({
+    owner: bootstrapIdentitySchema,
+    isolationUser: bootstrapIdentitySchema,
+    operatorReference: z.string().trim().min(1).max(160).optional(),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (value.owner.email === value.isolationUser.email) {
+      context.addIssue({
+        code: "custom",
+        path: ["isolationUser", "email"],
+        message: "Isolation-test email must differ from the owner email.",
+      });
+    }
+  });
 
 const authenticationUserSchema = z.object({
   id: z.string().min(1),
