@@ -77,7 +77,11 @@ test("shows factual duplication, wear, cost-per-wear, and wish-list impact", asy
   await expect(page).toHaveURL(/\/insights$/);
   await expect(page.getByRole("heading", { name: "See the facts behind your wardrobe." })).toBeVisible();
 
-  const duplicateCard = page.locator("article.duplicate-card").filter({ hasText: blazerA });
+  const duplicateCard = page
+    .locator("article.duplicate-card")
+    .filter({ hasText: blazerA })
+    .filter({ hasText: "Exact Signal" })
+    .first();
   await expect(duplicateCard.getByText(blazerB, { exact: true })).toBeVisible();
   await expect(duplicateCard.getByText("Exact Signal", { exact: true })).toBeVisible();
 
