@@ -4,11 +4,12 @@ Date: 2026-07-26
 Repository: `JoeryVandenBosch/Sartoria`
 Audit branch: `audit/claude-readiness`
 Base: `main` at `f515cb677225e57cd1df167da6a15148208e55fa`
+Pull request: `#19`
 Risk: 3 — repository governance, deployment, security, and operational boundaries
 
 ## Objective
 
-Perform a repository-wide consistency and readiness review after the private MVP, release hardening, staging package, and audited identity bootstrap were merged. The audit must leave Claude with an accurate baseline, an exact first coding slice, and no silent claim that external staging or production has already been completed.
+Perform a repository-wide consistency and readiness review after the private MVP, release hardening, staging package, and audited identity bootstrap were merged. The audit leaves Claude with an accurate baseline, an exact first coding slice, and no silent claim that external staging or production has already been completed.
 
 ## Scope reviewed
 
@@ -140,8 +141,24 @@ When external staging inputs are unavailable, Claude starts `docs/features/0010-
 
 ## Validation evidence
 
-Pending final pull-request validation. Record the final head, workflow run, test totals, build, standalone, Compose, environment, staging-package, and Chromium results before merge.
+Code-complete pull-request validation passed on branch head `8551a0a53c10ed49fa6135f9b79568ef7977f2f4` in GitHub Actions run `30195729947`.
+
+Passed gates:
+
+- production environment contract;
+- immutable staging image positive and negative contract;
+- staging environment contract;
+- staging package repository integrity;
+- segmented Compose service definition;
+- lint;
+- strict TypeScript;
+- complete unit and application test suite;
+- production build;
+- standalone deployment artifact;
+- Chromium installation and complete end-to-end smoke suite.
+
+No failure diagnostics or Playwright report were produced because every gate passed. The evidence-only audit and handoff update must also retain a green final PR run before merge.
 
 ## Audit conclusion
 
-Repository structure and product implementation are suitable for Claude continuation once this audit branch passes the complete gate and merges. External staging remains a separate operator-controlled acceptance process.
+Repository structure, product implementation, deployment package, and continuation instructions are suitable for Claude coding after PR `#19` merges. External staging remains a separate operator-controlled acceptance process.
