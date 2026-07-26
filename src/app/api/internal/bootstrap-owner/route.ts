@@ -7,6 +7,7 @@ import { verifyBearerToken } from "@/lib/security/internal-token";
 import {
   bootstrapOwner,
   OwnerBootstrapAlreadyCompletedError,
+  OwnerBootstrapValidationError,
 } from "@/modules/staging/application/bootstrap-owner";
 import {
   OwnerBootstrapConfigurationError,
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     configuration = readOwnerBootstrapConfiguration();
   } catch (error) {
     if (error instanceof OwnerBootstrapConfigurationError) {
-      return NextResponse.json({ error: "Owner bootstrap is misconfigured." }, { status: 503 });
+      return NextResponse.json({ error: "Identity bootstrap is misconfigured." }, { status: 503 });
     }
     throw error;
   }
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const parsed = ownerBootstrapRequestSchema.safeParse(payload);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Invalid owner bootstrap request.", fieldErrors: parsed.error.flatten().fieldErrors },
+      { error: "Invalid identity bootstrap request.", fieldErrors: parsed.error.flatten().fieldErrors },
       { status: 400 },
     );
   }
@@ -82,9 +83,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json(
       {
-        ownerId: result.ownerId,
-        name: result.name,
-        email: result.email,
+        owner: result.owner,
+        isolationUser: result.isolationUser,
         createdAt: result.createdAt,
         bootstrap: "completed",
       },
@@ -92,17 +92,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   } catch (error) {
     if (error instanceof OwnerBootstrapAlreadyCompletedError) {
-      return NextResponse.json({ error: "Owner bootstrap is already reserved or completed." }, { status: 409 });
+      return NextResponse.json(
+        { error: "Identity bootstrap is already reserved or completed." },
+        { status: 409 },
+      );
+    }
+    if (error instanceof OwnerBootstrapValidationError) {
+      return NextResponse.json({ error: "Identity bootstrap validation failed." }, { status: 400 });
     }
     if (error instanceof OwnerBootstrapStateError) {
-      console.error("Owner bootstrap state failure.", error.name);
-      return NextResponse.json({ error: "Owner bootstrap state requires operator review." }, { status: 500 });
+      console.error("Identity bootstrap state failure.", error.name);
+      return NextResponse.json(
+        { error: "Identity bootstrap state requires operator review." },
+        { status: 500 },
+      );
     }
 
     console.error(
-      "Owner bootstrap failed.",
+      "Identity bootstrap failed.",
       error instanceof Error ? error.name : "UnknownError",
     );
-    return NextResponse.json({ error: "Owner bootstrap failed." }, { status: 500 });
+    return NextResponse.json({ error: "Identity bootstrap failed." }, { status: 500 });
   }
 }
