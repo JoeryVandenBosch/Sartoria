@@ -1,5 +1,5 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "owners": {
     "product": ["JoeryVandenBosch"],
     "engineering": ["JoeryVandenBosch"],
@@ -7,48 +7,72 @@
     "release": ["JoeryVandenBosch"]
   },
   "commands": {
-    "bootstrap": "npm install",
+    "bootstrap": "npm install --no-audit --no-fund",
+    "dev": "npm run dev",
     "build": "npm run build",
-    "test": "npm test && npm run test:e2e",
-    "lint": "npm run lint && npm run typecheck",
-    "validate": "npm run validate"
+    "test": "npm test",
+    "e2e": "npm run test:e2e",
+    "lint": "npm run lint",
+    "typecheck": "npm run typecheck",
+    "validate": "npm run validate && npm run test:e2e",
+    "verifyProductionEnvironment": "npm run verify:production-env",
+    "verifyLiveStaging": "npm run verify:staging",
+    "migrateAuthentication": "npm run db:auth:migrate",
+    "migrateApplication": "npm run db:migrate"
   },
   "boundaries": {
-    "sourceRoots": ["src", "scripts", "migrations"],
+    "sourceRoots": ["src", "scripts", "migrations", "deploy"],
     "testRoots": ["tests"],
     "generatedPaths": [".next", "coverage", "playwright-report", "test-results"],
     "protectedPaths": [
       ".github/workflows",
       ".ai",
       "AI_OPERATIONS",
+      "deploy",
       "docs/architecture/decisions",
+      "docs/adr",
+      "docs/security",
+      "docs/operations",
       "migrations",
       "SECURITY.md",
       "src/lib/auth",
       "src/lib/database",
+      "src/lib/security",
       "src/modules/identity",
       "src/modules/media",
-      "src/modules/recommendations"
+      "src/modules/profile",
+      "src/modules/outfits",
+      "src/modules/recommendations",
+      "src/modules/travel",
+      "src/modules/insights",
+      "src/modules/staging"
     ]
   },
   "validation": {
     "requiredChecks": [
+      "production-environment-contract",
+      "staging-service-definition",
       "lint",
       "typecheck",
       "unit-tests",
       "application-tests",
-      "e2e-smoke-test",
       "build",
+      "standalone-artifact",
+      "e2e-smoke-test",
       "aiframework-governance"
     ],
-    "coveragePolicy": "Changed domain behaviour and critical privacy, authorisation, persistence, recommendation, and media paths require automated verification.",
+    "coveragePolicy": "Changed domain behaviour and critical privacy, authentication, authorisation, persistence, migration, recommendation, media, staging, deployment, and ownership paths require automated verification at the narrowest meaningful boundary plus the complete CI gate before merge.",
     "securityScanning": [
       "dependency review",
       "secret scanning",
       "static analysis",
       "database ownership isolation",
-      "upload validation",
-      "AI output schema validation"
+      "forced row-level security",
+      "upload validation and malware-scanning boundary",
+      "AI output schema validation",
+      "bootstrap token and single-use state validation",
+      "private object anonymous-access denial",
+      "deployment environment fail-closed verification"
     ]
   },
   "risk": {
@@ -56,15 +80,30 @@
     "highRiskPaths": [
       ".github/workflows",
       "AI_OPERATIONS",
+      "deploy",
       "migrations",
-      "infrastructure",
+      "scripts/verify-production-env.mjs",
+      "scripts/verify-staging.mjs",
       "src/modules/identity",
       "src/modules/media",
+      "src/modules/profile",
+      "src/modules/outfits",
       "src/modules/recommendations",
+      "src/modules/travel",
+      "src/modules/insights",
+      "src/modules/staging",
       "src/lib/auth",
       "src/lib/database",
+      "src/lib/security",
       "src/lib/ai"
     ],
     "humanApprovalLevels": [3, 4]
+  },
+  "currentState": {
+    "privateMvp": "repository-complete-and-ci-validated",
+    "stagingPackage": "repository-complete-and-ci-validated",
+    "liveStaging": "external-provisioning-and-acceptance-pending-issue-17",
+    "nextRepositoryOwnedPhase": "phase-7b-closed-beta-readiness",
+    "publicCommunityFeatures": "outside-private-v1"
   }
 }
