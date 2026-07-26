@@ -16,6 +16,7 @@
     "typecheck": "npm run typecheck",
     "validate": "npm run validate && npm run test:e2e",
     "verifyProductionEnvironment": "npm run verify:production-env",
+    "verifyImmutableStagingImages": "npm run verify:staging-images",
     "verifyLiveStaging": "npm run verify:staging",
     "migrateAuthentication": "npm run db:auth:migrate",
     "migrateApplication": "npm run db:migrate"
@@ -51,6 +52,8 @@
   "validation": {
     "requiredChecks": [
       "production-environment-contract",
+      "staging-environment-contract",
+      "immutable-staging-images",
       "staging-service-definition",
       "lint",
       "typecheck",
@@ -72,7 +75,8 @@
       "AI output schema validation",
       "bootstrap token and single-use state validation",
       "private object anonymous-access denial",
-      "deployment environment fail-closed verification"
+      "deployment environment fail-closed verification",
+      "immutable deployment image reference verification"
     ]
   },
   "risk": {
@@ -81,8 +85,10 @@
       ".github/workflows",
       "AI_OPERATIONS",
       "deploy",
+      "Dockerfile",
       "migrations",
       "scripts/verify-production-env.mjs",
+      "scripts/verify-staging-images.mjs",
       "scripts/verify-staging.mjs",
       "src/modules/identity",
       "src/modules/media",
