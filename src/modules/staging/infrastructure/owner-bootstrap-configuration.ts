@@ -10,8 +10,10 @@ export type OwnerBootstrapConfiguration = Readonly<{
   token: string | null;
 }>;
 
+export type OwnerBootstrapEnvironment = Readonly<Record<string, string | undefined>>;
+
 export function readOwnerBootstrapConfiguration(
-  environment: NodeJS.ProcessEnv = process.env,
+  environment: OwnerBootstrapEnvironment = process.env,
 ): OwnerBootstrapConfiguration {
   const enabled = environment.SARTORIA_OWNER_BOOTSTRAP_ENABLED?.trim() === "true";
   if (!enabled) {
