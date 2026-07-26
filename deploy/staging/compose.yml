@@ -1,0 +1,121 @@
+services:
+  database:
+    image: ${POSTGRES_IMAGE:?Set POSTGRES_IMAGE to an approved immutable image reference}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [private]
+
+  object-storage:
+    image: ${MINIO_IMAGE:?Set MINIO_IMAGE to an approved immutable image reference}
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - object-data:/data
+    networks: [private]
+
+  object-storage-init:
+    image: ${MINIO_CLIENT_IMAGE:?Set MINIO_CLIENT_IMAGE to an approved immutable image reference}
+    depends_on:
+      - object-storage
+    restart: "no"
+    entrypoint: ["/bin/sh", "-ec"]
+    command: >-
+      until mc alias set staging http://object-storage:9000 "$${MINIO_ROOT_USER}" "$${MINIO_ROOT_PASSWORD}"; do sleep 2; done;
+      mc mb --ignore-existing staging/"$${MEDIA_S3_BUCKET}";
+      mc anonymous set none staging/"$${MEDIA_S3_BUCKET}";
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MEDIA_S3_BUCKET: ${MEDIA_S3_BUCKET}
+    networks: [private]
+
+  clamav:
+    image: ${CLAMAV_IMAGE:?Set CLAMAV_IMAGE to an approved immutable image reference}
+    restart: unless-stopped
+    volumes:
+      - clamav-data:/var/lib/clamav
+    networks: [private]
+
+  app:
+    build:
+      context: ../..
+      target: runtime
+    restart: unless-stopped
+    env_file: staging.env
+    depends_on:
+      database:
+        condition: service_healthy
+      object-storage-init:
+        condition: service_completed_successfully
+      clamav:
+        condition: service_started
+    expose:
+      - "3000"
+    networks: [private]
+
+  auth-migrations:
+    profiles: ["operations"]
+    build:
+      context: ../..
+      target: migrations
+    env_file: staging.env
+    command: ["npm", "run", "db:auth:migrate"]
+    depends_on:
+      database:
+        condition: service_healthy
+    networks: [private]
+
+  app-migrations:
+    profiles: ["operations"]
+    build:
+      context: ../..
+      target: migrations
+    env_file: staging.env
+    command: ["npm", "run", "db:migrate"]
+    depends_on:
+      database:
+        condition: service_healthy
+    networks: [private]
+
+  edge:
+    image: ${CADDY_IMAGE:?Set CADDY_IMAGE to an approved immutable image reference}
+    restart: unless-stopped
+    depends_on:
+      - app
+      - object-storage
+    environment:
+      STAGING_HOST: ${STAGING_HOST}
+      STAGING_STORAGE_HOST: ${STAGING_STORAGE_HOST}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks: [private]
+
+networks:
+  private:
+    internal: false
+
+volumes:
+  postgres-data:
+  object-data:
+  clamav-data:
+  caddy-data:
+  caddy-config:
