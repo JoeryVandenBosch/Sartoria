@@ -23,6 +23,8 @@ describe("wardrobe item transport validation", () => {
       primaryColor: "Navy",
       ownershipStatus: "owned",
       fitNotes: "Clean shoulder line",
+      acquisitionCostMinor: null,
+      acquisitionCurrency: null,
     });
   });
 
