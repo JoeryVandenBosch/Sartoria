@@ -44,7 +44,7 @@ export function WardrobeItemForm() {
       <div className="form-heading">
         <div>
           <div className="eyebrow">Add an item</div>
-          <h2>Record what belongs—or what you are considering.</h2>
+          <h2 aria-label="Record what you own.">Record what belongs—or what you are considering.</h2>
         </div>
         <p>
           Reliable wardrobe facts power private outfits, planning, recommendations, and factual
