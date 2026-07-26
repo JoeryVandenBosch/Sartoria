@@ -22,7 +22,7 @@ class FakeSession implements DatabaseSession {
   async query<Row>(text: string, values: readonly unknown[] = []): Promise<DatabaseResult<Row>> {
     this.queries.push({ text, values });
     if (text.includes("EXISTS (SELECT 1 FROM \"user\"")) {
-      return { rows: [this.state as Row], rowCount: 1 };
+      return { rows: [this.state as unknown as Row], rowCount: 1 };
     }
     if (text.startsWith("UPDATE sartoria_owner_bootstrap_audit")) {
       return { rows: [], rowCount: this.updateRowCount };
@@ -46,12 +46,13 @@ class FakePool implements DatabasePool {
 }
 
 describe("PostgresOwnerBootstrapStore", () => {
-  it("serialises and reserves the one-time bootstrap before user creation", async () => {
+  it("serialises and reserves both identity digests before user creation", async () => {
     const session = new FakeSession();
     const store = new PostgresOwnerBootstrapStore(new FakePool([session]));
 
     await store.reserve({
-      emailSha256: "a".repeat(64),
+      ownerEmailSha256: "a".repeat(64),
+      isolationEmailSha256: "b".repeat(64),
       operatorReference: "change-17",
       startedAt: "2026-07-26T08:00:00.000Z",
     });
@@ -66,6 +67,7 @@ describe("PostgresOwnerBootstrapStore", () => {
     expect(session.queries[1]?.values).toEqual(["sartoria-owner-bootstrap-v1"]);
     expect(session.queries[3]?.values).toEqual([
       "a".repeat(64),
+      "b".repeat(64),
       "change-17",
       "2026-07-26T08:00:00.000Z",
     ]);
@@ -79,7 +81,8 @@ describe("PostgresOwnerBootstrapStore", () => {
 
     await expect(
       store.reserve({
-        emailSha256: "a".repeat(64),
+        ownerEmailSha256: "a".repeat(64),
+        isolationEmailSha256: "b".repeat(64),
         operatorReference: null,
         startedAt: "2026-07-26T08:00:00.000Z",
       }),
@@ -88,19 +91,24 @@ describe("PostgresOwnerBootstrapStore", () => {
     expect(session.released).toBe(true);
   });
 
-  it("completes only an existing pending reservation", async () => {
+  it("completes only an existing pending reservation with two distinct users", async () => {
     const session = new FakeSession();
     const store = new PostgresOwnerBootstrapStore(new FakePool([session]));
 
     await store.complete({
       ownerId: "owner-1",
+      isolationUserId: "isolation-1",
       completedAt: "2026-07-26T08:00:01.000Z",
     });
 
     const update = session.queries.find((query) =>
       query.text.startsWith("UPDATE sartoria_owner_bootstrap_audit"),
     );
-    expect(update?.values).toEqual(["owner-1", "2026-07-26T08:00:01.000Z"]);
+    expect(update?.values).toEqual([
+      "owner-1",
+      "isolation-1",
+      "2026-07-26T08:00:01.000Z",
+    ]);
     expect(session.released).toBe(true);
   });
 
@@ -112,6 +120,7 @@ describe("PostgresOwnerBootstrapStore", () => {
     await expect(
       store.complete({
         ownerId: "owner-1",
+        isolationUserId: "isolation-1",
         completedAt: "2026-07-26T08:00:01.000Z",
       }),
     ).rejects.toBeInstanceOf(OwnerBootstrapStateError);
