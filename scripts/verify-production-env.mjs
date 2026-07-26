@@ -20,6 +20,11 @@ for (const name of required) {
   if (!value(name)) errors.push(`${name} is required.`);
 }
 
+const deploymentEnvironment = value("SARTORIA_DEPLOYMENT_ENV");
+if (!["staging", "production"].includes(deploymentEnvironment)) {
+  errors.push("SARTORIA_DEPLOYMENT_ENV must be staging or production.");
+}
+
 if (value("SARTORIA_AUTH_MODE") !== "better-auth") {
   errors.push("SARTORIA_AUTH_MODE must be better-auth.");
 }
@@ -48,11 +53,39 @@ for (const name of ["BETTER_AUTH_URL", "MEDIA_PROCESSING_QUEUE_URL"]) {
 }
 
 if (value("DATABASE_SSL_MODE") === "disable") {
-  errors.push("DATABASE_SSL_MODE=disable is not allowed for the production release gate.");
+  const stagingOverride = value("SARTORIA_STAGING_ALLOW_INTERNAL_DB_PLAINTEXT") === "true";
+  if (deploymentEnvironment !== "staging" || !stagingOverride) {
+    errors.push(
+      "DATABASE_SSL_MODE=disable is allowed only for an explicitly approved isolated staging network.",
+    );
+  }
+}
+if (
+  deploymentEnvironment === "production" &&
+  value("SARTORIA_STAGING_ALLOW_INTERNAL_DB_PLAINTEXT") === "true"
+) {
+  errors.push("SARTORIA_STAGING_ALLOW_INTERNAL_DB_PLAINTEXT cannot be enabled in production.");
+}
+
+const bootstrapEnabledValue = value("SARTORIA_OWNER_BOOTSTRAP_ENABLED");
+if (bootstrapEnabledValue && !["true", "false"].includes(bootstrapEnabledValue)) {
+  errors.push("SARTORIA_OWNER_BOOTSTRAP_ENABLED must be true or false when configured.");
+}
+const bootstrapEnabled = bootstrapEnabledValue === "true";
+const bootstrapToken = value("SARTORIA_OWNER_BOOTSTRAP_TOKEN");
+if (bootstrapEnabled) {
+  if (deploymentEnvironment !== "staging") {
+    errors.push("Owner bootstrap can only be enabled in staging.");
+  }
+  if (bootstrapToken.length < 64) {
+    errors.push("SARTORIA_OWNER_BOOTSTRAP_TOKEN must contain at least 64 characters.");
+  }
+} else if (bootstrapToken) {
+  errors.push("Remove SARTORIA_OWNER_BOOTSTRAP_TOKEN when owner bootstrap is disabled.");
 }
 
 const recommendationMode = value("SARTORIA_RECOMMENDATION_MODE") || "fallback";
-if (!['fallback', 'provider'].includes(recommendationMode)) {
+if (!["fallback", "provider"].includes(recommendationMode)) {
   errors.push("SARTORIA_RECOMMENDATION_MODE must be fallback or provider.");
 }
 if (recommendationMode === "provider") {

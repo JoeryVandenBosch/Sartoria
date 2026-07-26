@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
+import { admin } from "better-auth/plugins";
 
 import { assertDatabaseConfigured, getPostgresPool } from "@/lib/database/postgres-pool";
 
@@ -61,7 +62,13 @@ export const auth = betterAuth({
     minPasswordLength: 12,
     revokeSessionsOnPasswordReset: true,
   },
-  plugins: [nextCookies()],
+  plugins: [
+    admin({
+      adminRoles: ["admin"],
+      defaultRole: "user",
+    }),
+    nextCookies(),
+  ],
   telemetry: {
     enabled: false,
   },
