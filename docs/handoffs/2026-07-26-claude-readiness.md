@@ -3,7 +3,7 @@
 Date: 2026-07-26
 Repository: `JoeryVandenBosch/Sartoria`
 Target branch: `main`
-Audit PR: pending
+Audit pull request: `#19`
 
 ## Read first
 
@@ -36,9 +36,11 @@ Completed capabilities:
 - deterministic travel planning and packing;
 - Better Auth, PostgreSQL repositories, and forced row-level security;
 - release environment and rollback gates;
-- containerised private staging package;
+- digest-controlled containerised private staging package;
+- segmented edge and internal data networks;
 - audited staging owner and isolation-test identity bootstrap;
-- live staging health and anonymous-storage verification tooling.
+- live staging health and anonymous-storage verification tooling;
+- explicit exclusion of staging secrets and evidence from Git and image contexts.
 
 Public sign-up remains disabled. V1 remains private. Public community, discovery, social feeds, and public wardrobe sharing are not current work.
 
@@ -109,4 +111,18 @@ A Claude change is not complete until:
 
 ## Final audit evidence
 
-Pending the Claude-readiness pull request and final GitHub Actions run. This handoff must be updated with the merged audit commit and validation result before it becomes canonical.
+Pull request `#19` code-complete validation passed on head `8551a0a53c10ed49fa6135f9b79568ef7977f2f4` in GitHub Actions run `30195729947`.
+
+Passed checks:
+
+- production environment contract;
+- immutable staging image positive and negative contract;
+- staging environment contract;
+- staging package repository integrity;
+- segmented Compose configuration;
+- lint and strict TypeScript;
+- complete unit/application tests;
+- production build and standalone artifact;
+- complete Chromium end-to-end suite.
+
+This evidence-only handoff commit must retain a green final PR run. After PR `#19` merges, the latest `main` becomes the canonical Claude starting point; the actual merge commit is recorded in the PR and issue `#17` rather than guessed here.
