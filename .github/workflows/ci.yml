@@ -31,10 +31,12 @@ jobs:
 
       - name: Verify production environment contract
         env:
+          SARTORIA_DEPLOYMENT_ENV: production
           SARTORIA_AUTH_MODE: better-auth
           SARTORIA_PERSISTENCE_MODE: postgres
           SARTORIA_MEDIA_MODE: production
           SARTORIA_RECOMMENDATION_MODE: fallback
+          SARTORIA_OWNER_BOOTSTRAP_ENABLED: "false"
           DATABASE_URL: postgresql://user:password@database.internal:5432/sartoria
           DATABASE_SSL_MODE: require
           BETTER_AUTH_URL: https://sartoria.example.test
