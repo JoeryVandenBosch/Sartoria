@@ -43,20 +43,28 @@ Replace every placeholder. Keep `.env`, `staging.env` and `minio-cors.xml` out o
 Required properties:
 
 - all secrets are unique, randomly generated and at least 32 characters where required;
+- `SARTORIA_DEPLOYMENT_ENV=staging`;
 - `DATABASE_URL` points to `database:5432` in this reference topology;
+- `DATABASE_SSL_MODE=disable` is paired with `SARTORIA_STAGING_ALLOW_INTERNAL_DB_PLAINTEXT=true` only for this isolated staging network;
 - `BETTER_AUTH_URL` and `MEDIA_PROCESSING_QUEUE_URL` use the public HTTPS staging hostname;
 - `MEDIA_S3_ENDPOINT` uses the HTTPS media hostname;
 - storage credentials match the MinIO credentials supplied through Compose;
-- recommendation mode remains `fallback`.
+- recommendation mode remains `fallback`;
+- owner bootstrap remains disabled until the migration and health gates pass.
 
 ## Validate configuration without starting services
 
 ```bash
+set -a
+. ./staging.env
+set +a
+npm run verify:production-env
+
 docker compose config --quiet
 docker compose build app auth-migrations app-migrations
 ```
 
-Stop when Compose reports missing variables, an image is not digest-pinned, or a secret is still blank.
+Stop when the environment verifier or Compose reports an error, an image is not digest-pinned, or a secret is still blank.
 
 ## Start dependencies
 
@@ -88,7 +96,7 @@ docker compose --profile operations run --rm auth-migrations
 docker compose --profile operations run --rm app-migrations
 ```
 
-Never reverse the order. Never rename an applied Sartoria migration.
+Never reverse the order. Never rename an applied Sartoria migration. The Better Auth migration must include the Admin plugin fields before the identity bootstrap endpoint is used.
 
 ## Start the application
 
@@ -106,24 +114,146 @@ curl --fail --silent --show-error "https://$STAGING_HOST/api/health/ready"
 
 Expected responses are `{"status":"live"}` and `{"status":"ready"}`. Readiness returning HTTP 503 blocks further testing.
 
-## Initial owner account gate
+Run the automated unauthenticated staging checks:
 
-Better Auth sign-up is deliberately disabled. Do not temporarily enable public sign-up. Before staging acceptance, implement or approve a one-time, audited owner bootstrap procedure and record:
+```bash
+STAGING_BASE_URL="https://$STAGING_HOST" \
+STAGING_STORAGE_URL="https://$STAGING_STORAGE_HOST" \
+STAGING_MEDIA_BUCKET="$MEDIA_S3_BUCKET" \
+STAGING_COMMIT_SHA="$(git rev-parse HEAD)" \
+STAGING_EXPECT_BOOTSTRAP=disabled \
+STAGING_EVIDENCE_FILE="staging-evidence-before-bootstrap.json" \
+npm run verify:staging
+```
 
-- the operator;
-- execution timestamp;
-- owner email;
-- resulting user identifier;
-- confirmation that bootstrap access was removed immediately afterwards.
+The evidence file contains only origins, status codes, headers, commit and timestamps. It contains no credentials.
 
-This remains a staging blocker until an audited bootstrap path is present.
+## Audited identity bootstrap
+
+Public sign-up remains disabled. The internal endpoint creates exactly two normal Better Auth users: the staging owner and a dedicated isolation-test user. It can run only once and only while explicitly enabled in staging.
+
+### Enable the one-time gate
+
+Generate a unique token with at least 64 high-entropy characters and store it in the secret manager. Temporarily set in `staging.env`:
+
+```dotenv
+SARTORIA_OWNER_BOOTSTRAP_ENABLED=true
+SARTORIA_OWNER_BOOTSTRAP_TOKEN=<secret-manager-reference-value>
+```
+
+Recreate only the application container:
+
+```bash
+docker compose up -d --force-recreate app
+```
+
+Confirm the endpoint is enabled but unauthorised without the token:
+
+```bash
+STAGING_BASE_URL="https://$STAGING_HOST" \
+STAGING_STORAGE_URL="https://$STAGING_STORAGE_HOST" \
+STAGING_MEDIA_BUCKET="$MEDIA_S3_BUCKET" \
+STAGING_EXPECT_BOOTSTRAP=enabled \
+npm run verify:staging
+```
+
+### Create both accounts
+
+Run from a trusted operator shell. Values are read silently and sent through standard input so passwords do not appear in the command line.
+
+```bash
+read -r -p "Owner name: " OWNER_NAME
+read -r -p "Owner email: " OWNER_EMAIL
+read -r -s -p "Owner password: " OWNER_PASSWORD; printf '\n'
+read -r -p "Isolation user name: " ISOLATION_NAME
+read -r -p "Isolation user email: " ISOLATION_EMAIL
+read -r -s -p "Isolation user password: " ISOLATION_PASSWORD; printf '\n'
+read -r -p "Operator/change reference: " OPERATOR_REFERENCE
+read -r -s -p "Bootstrap token: " BOOTSTRAP_TOKEN; printf '\n'
+
+OWNER_NAME="$OWNER_NAME" \
+OWNER_EMAIL="$OWNER_EMAIL" \
+OWNER_PASSWORD="$OWNER_PASSWORD" \
+ISOLATION_NAME="$ISOLATION_NAME" \
+ISOLATION_EMAIL="$ISOLATION_EMAIL" \
+ISOLATION_PASSWORD="$ISOLATION_PASSWORD" \
+OPERATOR_REFERENCE="$OPERATOR_REFERENCE" \
+node -e '
+  process.stdout.write(JSON.stringify({
+    owner: {
+      name: process.env.OWNER_NAME,
+      email: process.env.OWNER_EMAIL,
+      password: process.env.OWNER_PASSWORD
+    },
+    isolationUser: {
+      name: process.env.ISOLATION_NAME,
+      email: process.env.ISOLATION_EMAIL,
+      password: process.env.ISOLATION_PASSWORD
+    },
+    operatorReference: process.env.OPERATOR_REFERENCE
+  }))
+' | curl --fail-with-body --silent --show-error \
+  -H "Authorization: Bearer $BOOTSTRAP_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data-binary @- \
+  "https://$STAGING_HOST/api/internal/bootstrap-owner"
+
+unset OWNER_NAME OWNER_EMAIL OWNER_PASSWORD ISOLATION_NAME ISOLATION_EMAIL \
+  ISOLATION_PASSWORD OPERATOR_REFERENCE BOOTSTRAP_TOKEN
+```
+
+A successful response is HTTP 201 and returns both user identifiers without session cookies. Record the response in the restricted deployment evidence location.
+
+### Verify and remove bootstrap access
+
+Inspect the audit state without exposing passwords or the bearer token:
+
+```bash
+set -a
+. ./.env
+set +a
+
+docker compose exec -T database \
+  psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c '
+    SELECT status, owner_id, isolation_user_id, operator_reference, started_at, completed_at
+    FROM sartoria_owner_bootstrap_audit;
+  '
+```
+
+The single row must be `completed` with two distinct user identifiers. A `pending` row is a stop condition: preserve logs and database state, disable the endpoint, and investigate. Do not delete the audit row or directly edit Better Auth tables to retry.
+
+Immediately change `staging.env` to:
+
+```dotenv
+SARTORIA_OWNER_BOOTSTRAP_ENABLED=false
+```
+
+Delete `SARTORIA_OWNER_BOOTSTRAP_TOKEN` from the environment and secret manager, then recreate the app:
+
+```bash
+docker compose up -d --force-recreate app
+```
+
+Prove removal:
+
+```bash
+STAGING_BASE_URL="https://$STAGING_HOST" \
+STAGING_STORAGE_URL="https://$STAGING_STORAGE_HOST" \
+STAGING_MEDIA_BUCKET="$MEDIA_S3_BUCKET" \
+STAGING_COMMIT_SHA="$(git rev-parse HEAD)" \
+STAGING_EXPECT_BOOTSTRAP=disabled \
+STAGING_EVIDENCE_FILE="staging-evidence-after-bootstrap.json" \
+npm run verify:staging
+```
+
+The bootstrap endpoint must return HTTP 404 when disabled.
 
 ## Acceptance checklist
 
-Use the dedicated staging owner account.
+Use the staging owner and isolation-test accounts created above.
 
-- Sign in and sign out.
-- Create an owned wardrobe item and a wish-list item.
+- Sign in and sign out with both accounts.
+- Create an owned wardrobe item and a wish-list item as the owner.
 - Upload a valid private image; verify quarantine, scan and private display.
 - Attempt an unsupported file and confirm it never receives a private read URL.
 - Create, edit and delete an outfit.
@@ -132,13 +262,14 @@ Use the dedicated staging owner account.
 - Generate a deterministic recommendation.
 - Create and delete a travel packing plan.
 - Verify factual insights and source links.
-- Verify a second account cannot read the first account's objects.
+- Verify the isolation account cannot read any owner resource by list, detail, media URL or guessed identifier.
+- Create one isolated resource and prove the owner cannot read it.
 - Restart every container and confirm data persists.
 - Restore the database and object-storage backups to a separate rehearsal environment.
 
 ## Stop conditions
 
-Stop staging validation immediately when authentication boundaries fail, readiness is degraded, a private object is anonymously readable, unscanned media is available, ClamAV signatures are stale, migrations differ from the repository, secrets appear in logs, or backup restoration is unproven.
+Stop staging validation immediately when authentication boundaries fail, readiness is degraded, a private object is anonymously readable, unscanned media is available, ClamAV signatures are stale, migrations differ from the repository, bootstrap state remains pending, secrets appear in logs, or backup restoration is unproven.
 
 ## Evidence to retain
 
@@ -148,8 +279,8 @@ Stop staging validation immediately when authentication boundaries fail, readine
 - migration output;
 - bucket anonymous-access and CORS proof;
 - ClamAV version and signature timestamp;
-- health-check output;
-- acceptance-test results;
+- automated staging-verification JSON before and after bootstrap;
+- acceptance-test results for both identities;
 - backup and restore identifiers;
-- owner-bootstrap audit record;
+- completed identity-bootstrap audit row;
 - named staging operator and incident contact.
