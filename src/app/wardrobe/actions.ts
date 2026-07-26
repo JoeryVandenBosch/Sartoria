@@ -29,7 +29,9 @@ export async function createWardrobeItemAction(
     brand: formValue(formData, "brand"),
     primaryColor: formValue(formData, "primaryColor"),
     fitNotes: formValue(formData, "fitNotes"),
-    ownershipStatus: "owned",
+    ownershipStatus: formValue(formData, "ownershipStatus") || "owned",
+    acquisitionCost: formValue(formData, "acquisitionCost"),
+    acquisitionCurrency: formValue(formData, "acquisitionCurrency"),
   };
 
   const result = wardrobeItemFormSchema.safeParse(candidate);
@@ -52,6 +54,7 @@ export async function createWardrobeItemAction(
   );
 
   revalidatePath("/wardrobe");
+  revalidatePath("/insights");
   revalidatePath(`/wardrobe/${item.id}`);
 
   return {

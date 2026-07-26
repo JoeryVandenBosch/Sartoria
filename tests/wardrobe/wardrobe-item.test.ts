@@ -33,6 +33,8 @@ describe("wardrobe item", () => {
       primaryColor: "Deep navy",
       ownershipStatus: "owned",
       fitNotes: "Fits cleanly through the shoulders.",
+      acquisitionCostMinor: null,
+      acquisitionCurrency: null,
       createdAt: "2026-07-25T12:00:00.000Z",
     });
   });
@@ -52,6 +54,8 @@ describe("wardrobe item", () => {
 
     expect(item.brand).toBeNull();
     expect(item.fitNotes).toBeNull();
+    expect(item.acquisitionCostMinor).toBeNull();
+    expect(item.acquisitionCurrency).toBeNull();
   });
 
   it("rejects a missing item name", () => {
