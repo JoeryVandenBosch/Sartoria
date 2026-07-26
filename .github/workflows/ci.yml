@@ -73,6 +73,36 @@ jobs:
             exit 1
           fi
 
+      - name: Verify staging environment contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          digest="$(printf 'b%.0s' {1..64})"
+          SARTORIA_DEPLOYMENT_ENV=staging \
+          SARTORIA_AUTH_MODE=better-auth \
+          SARTORIA_PERSISTENCE_MODE=postgres \
+          SARTORIA_MEDIA_MODE=production \
+          SARTORIA_RECOMMENDATION_MODE=fallback \
+          SARTORIA_STAGING_ALLOW_INTERNAL_DB_PLAINTEXT=true \
+          SARTORIA_OWNER_BOOTSTRAP_ENABLED=false \
+          DATABASE_URL=postgresql://user:password@database:5432/sartoria \
+          DATABASE_SSL_MODE=disable \
+          BETTER_AUTH_URL=https://sartoria-staging.example.test \
+          BETTER_AUTH_SECRET=0123456789abcdef0123456789abcdef \
+          MEDIA_S3_BUCKET=sartoria-staging-private-media \
+          MEDIA_S3_REGION=us-east-1 \
+          MEDIA_PROCESSING_QUEUE_URL=https://sartoria-staging.example.test/api/internal/media/process \
+          MEDIA_PROCESSING_QUEUE_TOKEN=0123456789abcdef0123456789abcdef \
+          MEDIA_WORKER_TOKEN=0123456789abcdef0123456789abcdef \
+          CLAMAV_HOST=clamav \
+          NODE_IMAGE="node@sha256:$digest" \
+          POSTGRES_IMAGE="postgres@sha256:$digest" \
+          MINIO_IMAGE="minio@sha256:$digest" \
+          MINIO_CLIENT_IMAGE="mc@sha256:$digest" \
+          CLAMAV_IMAGE="clamav@sha256:$digest" \
+          CADDY_IMAGE="caddy@sha256:$digest" \
+          npm run verify:production-env
+
       - name: Validate staging service definition
         shell: bash
         run: |
