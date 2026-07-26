@@ -20,27 +20,21 @@ export type CreatedAuthenticationUser = Readonly<{
   email: string;
 }>;
 
-export type OwnerBootstrapAudit = Readonly<{
-  ownerId: string;
-  emailSha256: string;
-  operatorReference: string | null;
-  createdAt: string;
-}>;
-
-export type OwnerBootstrapOperation<Result> = Readonly<{
-  result: Result;
-  audit: OwnerBootstrapAudit;
-}>;
-
 export interface OwnerBootstrapStore {
-  runOnce<Result>(
-    operation: () => Promise<OwnerBootstrapOperation<Result>>,
-  ): Promise<Result>;
+  reserve(input: Readonly<{
+    emailSha256: string;
+    operatorReference: string | null;
+    startedAt: string;
+  }>): Promise<void>;
+  complete(input: Readonly<{
+    ownerId: string;
+    completedAt: string;
+  }>): Promise<void>;
 }
 
 export class OwnerBootstrapAlreadyCompletedError extends Error {
   constructor() {
-    super("The initial Sartoria owner bootstrap has already been completed.");
+    super("The initial Sartoria owner bootstrap has already been reserved or completed.");
     this.name = "OwnerBootstrapAlreadyCompletedError";
   }
 }
@@ -62,28 +56,30 @@ export async function bootstrapOwner(
   const normalizedName = input.name.trim();
   const normalizedEmail = input.email.trim().toLowerCase();
   const operatorReference = input.operatorReference?.trim() || null;
+  const startedAt = dependencies.now().toISOString();
 
-  return dependencies.store.runOnce(async () => {
-    const createdUser = await dependencies.createAuthenticationUser({
-      name: normalizedName,
-      email: normalizedEmail,
-      password: input.password,
-    });
-    const createdAt = dependencies.now().toISOString();
+  await dependencies.store.reserve({
+    emailSha256: emailDigest(normalizedEmail),
+    operatorReference,
+    startedAt,
+  });
 
-    return {
-      result: Object.freeze({
-        ownerId: createdUser.id,
-        name: createdUser.name,
-        email: createdUser.email,
-        createdAt,
-      }),
-      audit: Object.freeze({
-        ownerId: createdUser.id,
-        emailSha256: emailDigest(normalizedEmail),
-        operatorReference,
-        createdAt,
-      }),
-    };
+  const createdUser = await dependencies.createAuthenticationUser({
+    name: normalizedName,
+    email: normalizedEmail,
+    password: input.password,
+  });
+  const completedAt = dependencies.now().toISOString();
+
+  await dependencies.store.complete({
+    ownerId: createdUser.id,
+    completedAt,
+  });
+
+  return Object.freeze({
+    ownerId: createdUser.id,
+    name: createdUser.name,
+    email: createdUser.email,
+    createdAt: completedAt,
   });
 }
