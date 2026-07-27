@@ -154,7 +154,39 @@ Exit criteria:
 
 Status: **not started; approved next repository-owned phase**.
 
+## Phase 7C — Native client
+
+Added following ADR 0012, which records that Sartoria is a native application for the Apple App Store. This phase did not previously exist because the platform requirement was never written down.
+
+The product is not rewritten. Domain and application layers hold no framework concern and move to the native client unchanged; roughly 3,600 lines carry over, and the ~5,300-line web interface is what is replaced.
+
+Ordered slices:
+
+1. **API contract and native session handling.** Fix the HTTP surface the client depends on, and replace cookie-based server rendering with a token exchange appropriate for a native client. **Security-sensitive: requires its own ADR and independent review.** Introduces API versioning, since an installed client cannot be forced to update in step with the server.
+2. **Expo application shell.** Project structure, navigation, typography and colour matching the Italian-chic restraint, and the shared module import path proven end to end with one screen.
+3. **Wardrobe capture and browsing.** The first real screen. Native camera capture replaces browser file upload, retaining quarantine-first processing unchanged.
+4. **Outfits, recommendations, planning, insights.** Native equivalents of the existing flows. The retained web interface and its end-to-end tests define the expected behaviour.
+5. **App Store readiness.** Privacy nutrition labels, App Privacy report, public privacy policy, support URL, accessibility and touch-target review, offline behaviour, and a TestFlight build.
+
+Exit criteria:
+
+- the native client reproduces every flow the retained web interface covers, proven by tests;
+- no domain or application module imports a framework, enforced by an executable guard;
+- an old client version behaves predictably against a newer API;
+- a TestFlight build is installed and exercised on a physical device;
+- Architecture, Security, Privacy, Operations, and Documentation review evidence is recorded.
+
+Status: **not started. Blocked on an Apple Developer Program membership.**
+
+### Effect on earlier phases
+
+- **Phase 7B slice 3, invitation-controlled onboarding** (specified in `docs/features/0012-invitation-controlled-onboarding.md`) overlaps substantially with TestFlight, which provides invitation-based distribution natively. Reassess before implementing; it may reduce to server-side account provisioning only.
+- **Issue #17, live staging** becomes an API-only concern.
+- **Phase 8A wardrobe browsing** and wardrobe item correction remain valuable as behavioural references and are retained, but their interfaces are transitional.
+
 ## Phase 8 — Product refinement after closed beta
+
+> **Note after ADR 0012.** Phase 8 was written for a web interface. The reasoning in 8A about filtering, ordering, and what belongs on a screen carries over to the native client; the specific implementation does not. Treat this section as a behavioural specification rather than an interface plan.
 
 ### 8A — Wardrobe browsing
 

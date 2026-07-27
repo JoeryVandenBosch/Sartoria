@@ -4,6 +4,8 @@
 
 Sartoria is a premium personal wardrobe and style system that helps people understand what they own, build coherent outfits, buy with intent, and maintain a refined personal style over time.
 
+**Sartoria is a native mobile application for the Apple App Store.** The Next.js application in this repository serves the HTTP API and a transitional web interface retained as a behavioural reference until the equivalent native screens exist. See ADR 0012 and `VISION.md`.
+
 ## Product direction
 
 - Premium, discreet, and calm rather than trend-driven
