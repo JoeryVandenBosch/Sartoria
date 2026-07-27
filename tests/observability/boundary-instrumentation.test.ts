@@ -236,10 +236,10 @@ describe("architecture boundary", () => {
     const modules = await readdir(moduleRoot, { withFileTypes: true });
     const offenders: string[] = [];
 
-    for (const module of modules) {
-      if (!module.isDirectory()) continue;
+    for (const moduleEntry of modules) {
+      if (!moduleEntry.isDirectory()) continue;
 
-      const domainDirectory = path.join(moduleRoot, module.name, "domain");
+      const domainDirectory = path.join(moduleRoot, moduleEntry.name, "domain");
 
       let files: readonly string[];
       try {
