@@ -124,10 +124,12 @@ export default async function WardrobePage({
             </div>
 
             {categories.length > 1 ? (
-              <div className="wardrobe-filter-group">
-                <span aria-hidden="true" className="wardrobe-filter-label">
-                  Category
-                </span>
+              <details className="wardrobe-filter-group wardrobe-filter-disclosure">
+                <summary>
+                  {selection.category === undefined
+                    ? "All categories"
+                    : categoryLabel(selection.category)}
+                </summary>
                 <div className="wardrobe-filter-options">
                   <Link
                     aria-current={selection.category === undefined ? "true" : undefined}
@@ -153,7 +155,7 @@ export default async function WardrobePage({
                     </Link>
                   ))}
                 </div>
-              </div>
+              </details>
             ) : null}
           </nav>
         ) : null}

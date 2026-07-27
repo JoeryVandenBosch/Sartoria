@@ -593,3 +593,63 @@
   font-size: 0.62rem;
   padding: 0.05rem 0.45rem;
 }
+
+/*
+ * Mobile-first restraint.
+ *
+ * The wardrobe is a phone product first. Status is four short options and stays
+ * visible; category can run to thirteen and is placed behind a native
+ * disclosure, which needs no JavaScript and stays keyboard reachable. Before
+ * this, filters occupied 28% of an iPhone screen and the first garment sat
+ * below the fold.
+ */
+
+.wardrobe-filter-disclosure > summary {
+  border: 1px solid rgba(23, 32, 50, 0.12);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: inline-block;
+  font-size: 0.82rem;
+  list-style: none;
+  padding: 0.32rem 0.9rem;
+}
+
+.wardrobe-filter-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wardrobe-filter-disclosure > summary::after {
+  content: " ↓";
+  opacity: 0.45;
+}
+
+.wardrobe-filter-disclosure[open] > summary::after {
+  content: " ↑";
+}
+
+.wardrobe-filter-disclosure[open] > summary {
+  margin-bottom: 0.6rem;
+}
+
+@media (max-width: 48rem) {
+  /* Labels are redundant beside self-describing options, and cost a line each. */
+  .wardrobe-filter-label {
+    display: none;
+  }
+
+  .wardrobe-filters {
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding-top: 0.9rem;
+  }
+
+  .wardrobe-controls {
+    gap: 0.6rem;
+  }
+
+  /* One garment per row reads better than two cramped ones on a phone. */
+  .wardrobe-grid {
+    grid-template-columns: 1fr;
+  }
+}
