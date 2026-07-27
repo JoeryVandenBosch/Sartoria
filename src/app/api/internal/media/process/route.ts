@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { enforceClientRateLimit } from "@/lib/rate-limiting/enforce-rate-limit";
 import { verifyBearerToken } from "@/lib/security/internal-token";
 import { processWardrobeMedia } from "@/modules/media/application/process-wardrobe-media";
 import {
@@ -12,6 +13,13 @@ import { mediaProcessingMessageSchema } from "@/modules/media/transport/media-pr
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // Applied before token verification so a caller guessing tokens is bounded
+  // by the same limit as any other caller.
+  const limit = await enforceClientRateLimit("internal.endpoint", request);
+  if (limit.refusal) {
+    return limit.refusal;
+  }
+
   if (!verifyBearerToken(request.headers.get("authorization"), process.env.MEDIA_WORKER_TOKEN)) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getCurrentUserId } from "@/lib/auth/current-user";
+import { enforceOwnerRateLimit } from "@/lib/rate-limiting/enforce-rate-limit";
 import { initiateWardrobeMediaUpload } from "@/modules/media/application/initiate-wardrobe-media-upload";
 import {
   getMediaObjectStore,
@@ -33,6 +34,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   const ownerId = await getCurrentUserId();
+
+  const limit = await enforceOwnerRateLimit("media.upload.initiate", ownerId);
+  if (limit.refusal) {
+    return limit.refusal;
+  }
 
   try {
     const result = await initiateWardrobeMediaUpload(

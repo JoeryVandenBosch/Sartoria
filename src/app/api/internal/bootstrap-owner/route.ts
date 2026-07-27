@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { enforceClientRateLimit } from "@/lib/rate-limiting/enforce-rate-limit";
 import { auth } from "@/lib/auth/auth";
 import { createDatabasePool } from "@/lib/database/database-session";
 import { getPostgresPool } from "@/lib/database/postgres-pool";
@@ -25,6 +26,13 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  // Applied first so repeated attempts are bounded regardless of configuration
+  // state or token validity.
+  const limit = await enforceClientRateLimit("internal.endpoint", request);
+  if (limit.refusal) {
+    return limit.refusal;
+  }
+
   let configuration;
   try {
     configuration = readOwnerBootstrapConfiguration();

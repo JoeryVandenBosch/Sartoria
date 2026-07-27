@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUserId } from "@/lib/auth/current-user";
 import { getOutfitRepository } from "@/modules/outfits/infrastructure/outfit-repository";
 import { getOutfitWearEventRepository } from "@/modules/outfits/infrastructure/outfit-wear-event-repository";
+import { enforceOwnerRateLimit } from "@/lib/rate-limiting/enforce-rate-limit";
 import { generateWardrobeRecommendation } from "@/modules/recommendations/application/generate-wardrobe-recommendation";
 import {
   deleteRecommendation,
@@ -61,9 +62,22 @@ export async function generateRecommendationAction(
     };
   }
 
+  const ownerId = await getCurrentUserId();
+
+  // Generation is the most expensive owner-triggered operation. A refusal is
+  // reported through the existing form state so the interface stays consistent
+  // with every other outcome.
+  const limit = await enforceOwnerRateLimit("recommendation.generate", ownerId);
+  if (limit.refusal) {
+    return {
+      status: "error",
+      message: "You have requested advice frequently. Try again shortly.",
+      fieldErrors: {},
+    };
+  }
+
   let recommendationId: string;
   try {
-    const ownerId = await getCurrentUserId();
     const recommendation = await generateWardrobeRecommendation(
       {
         ownerId,
