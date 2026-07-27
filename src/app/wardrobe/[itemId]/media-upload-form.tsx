@@ -3,21 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 
-import {
-  allowedWardrobeMediaTypes,
-  maximumWardrobeMediaBytes,
-  type WardrobeMediaType,
-} from "@/modules/media/domain/wardrobe-media";
+import { allowedWardrobeMediaTypes } from "@/modules/media/domain/wardrobe-media";
 
-type InitiationResponse = Readonly<{
-  mediaId: string;
-  policy: Readonly<{
-    url: string;
-    fields: Readonly<Record<string, string>>;
-    expiresAt: string;
-    maximumBytes: number;
-  }>;
-}>;
+import { uploadWardrobeImage } from "../upload-wardrobe-image";
 
 export function MediaUploadForm({ wardrobeItemId }: Readonly<{ wardrobeItemId: string }>) {
   const router = useRouter();
@@ -36,80 +24,18 @@ export function MediaUploadForm({ wardrobeItemId }: Readonly<{ wardrobeItemId: s
       return;
     }
 
-    if (!allowedWardrobeMediaTypes.includes(file.type as WardrobeMediaType)) {
-      setMessage("Choose a JPEG, PNG, WebP, HEIC, or HEIF image.");
-      return;
-    }
-
-    if (file.size < 1 || file.size > maximumWardrobeMediaBytes) {
-      setMessage("The image must be smaller than 20 MiB.");
-      return;
-    }
-
     setPending(true);
 
-    try {
-      const initiation = await fetch("/api/media/uploads", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          wardrobeItemId,
-          originalFilename: file.name,
-          declaredContentType: file.type,
-          sizeBytes: file.size,
-        }),
-      });
+    const outcome = await uploadWardrobeImage(file, wardrobeItemId);
 
-      if (!initiation.ok) {
-        throw new Error("Sartoria could not prepare the private upload.");
-      }
+    setMessage(outcome.message);
+    setPending(false);
 
-      const upload = (await initiation.json()) as InitiationResponse;
-      const formData = new FormData();
-      for (const [field, value] of Object.entries(upload.policy.fields)) {
-        formData.append(field, value);
-      }
-      formData.append("file", file);
-
-      const stored = await fetch(upload.policy.url, {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!stored.ok) {
-        throw new Error("The image could not be stored in quarantine.");
-      }
-
-      const completed = await fetch(`/api/media/${encodeURIComponent(upload.mediaId)}/complete`, {
-        method: "POST",
-      });
-
-      if (!completed.ok && completed.status !== 422) {
-        throw new Error("Sartoria could not verify the uploaded image.");
-      }
-
-      const result = (await completed.json()) as {
-        status: string;
-        rejectionCode: string | null;
-      };
-
-      if (result.rejectionCode) {
-        setMessage("The image was rejected during secure validation.");
-      } else {
-        setMessage(
-          result.status === "uploaded"
-            ? "Upload complete. Secure scanning is in progress."
-            : "Image processed successfully.",
-        );
-      }
-
+    if (outcome.kind === "uploaded") {
       form.reset();
-      router.refresh();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "The private upload failed.");
-    } finally {
-      setPending(false);
     }
+
+    router.refresh();
   }
 
   return (
