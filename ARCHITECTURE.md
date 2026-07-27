@@ -6,11 +6,24 @@ Sartoria begins as a modular monolith. Product capabilities share one deployable
 
 This keeps the first product operationally simple without allowing UI, persistence, AI providers, or external services to become the domain model.
 
-## Initial technology direction
+## Delivery platform
 
-- Next.js with the App Router
+Sartoria is a **native mobile application distributed through the Apple App Store**, served by an HTTP API. See ADR 0012.
+
+This has a direct architectural consequence. Domain and application layers must hold no framework, transport, or rendering concern, because they are consumed by a native client as well as by the server. That rule already existed; it is now load-bearing rather than stylistic. A React or Next import inside `src/modules/*/domain` or `src/modules/*/application` breaks the native client and is a build failure, not a review comment.
+
+## Technology direction
+
+**Client**
+
+- React Native under Expo
 - TypeScript with strict compiler settings
-- React server components by default
+- Domain and application modules imported directly from `src/modules`
+
+**Server**
+
+- Next.js with the App Router, serving the HTTP API under `src/app/api`
+- React server components for the retained web reference interface, which is transitional
 - PostgreSQL as the system of record
 - Repository-controlled schema migrations
 - S3-compatible object storage for wardrobe imagery
