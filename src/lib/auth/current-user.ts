@@ -3,10 +3,14 @@ import { redirect } from "next/navigation";
 
 import { auth, assertProductionAuthenticationConfigured } from "@/lib/auth/auth";
 import { getDevelopmentCurrentUserId } from "@/lib/auth/development-current-user";
+import { generateCorrelationId } from "@/lib/observability/correlation-id";
 import { getOperationalEventEmitter } from "@/lib/observability/operational-event-runtime";
 
 export async function getCurrentUserId(): Promise<string> {
   const emitter = getOperationalEventEmitter();
+  // Groups the events of one resolution. Cross-boundary propagation within a
+  // single request needs request-scoped context and is not implemented.
+  const correlationId = generateCorrelationId();
   const authenticationMode = process.env.SARTORIA_AUTH_MODE;
   const useDevelopmentIdentity =
     process.env.NODE_ENV !== "production" && authenticationMode !== "better-auth";
@@ -17,6 +21,7 @@ export async function getCurrentUserId(): Promise<string> {
         name: "auth.session.resolved",
         severity: "error",
         outcome: "failure",
+        correlationId,
         attributes: {
           identitySource: "development",
           authenticated: false,
@@ -33,6 +38,7 @@ export async function getCurrentUserId(): Promise<string> {
       name: "auth.session.resolved",
       severity: "info",
       outcome: "success",
+      correlationId,
       attributes: { identitySource: "development", authenticated: true },
     });
 
@@ -50,6 +56,7 @@ export async function getCurrentUserId(): Promise<string> {
       name: "auth.session.resolved",
       severity: "info",
       outcome: "failure",
+      correlationId,
       attributes: {
         identitySource: "better-auth",
         authenticated: false,
@@ -66,6 +73,7 @@ export async function getCurrentUserId(): Promise<string> {
     name: "auth.session.resolved",
     severity: "info",
     outcome: "success",
+    correlationId,
     attributes: { identitySource: "better-auth", authenticated: true },
   });
 

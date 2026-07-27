@@ -1,7 +1,4 @@
-import {
-  NULL_OPERATIONAL_EVENT_EMITTER,
-  type OperationalEventEmitter,
-} from "@/lib/observability/operational-event-emitter";
+import type { OperationalEventEmitter } from "@/lib/observability/operational-event-emitter";
 import { buildRecommendationContext } from "@/modules/recommendations/application/build-recommendation-context";
 import { createDeterministicRecommendation } from "@/modules/recommendations/application/deterministic-recommendation-fallback";
 import type { RecommendationGateway } from "@/modules/recommendations/application/recommendation-gateway";
@@ -39,14 +36,18 @@ export async function generateWardrobeRecommendation(
     createId: () => string;
     now: () => Date;
     /**
-     * Optional so existing callers and tests are unaffected. Injected rather
-     * than resolved globally, keeping this use case pure and independent of
-     * observability configuration.
+     * Required. Injected rather than resolved globally, keeping this use case
+     * pure and independent of observability configuration — but not optional,
+     * because an optional emitter is one a composition root can forget, and
+     * every production call site did. A caller that wants no telemetry passes
+     * `NULL_OPERATIONAL_EVENT_EMITTER` explicitly.
      */
-    emitter?: OperationalEventEmitter;
+    emitter: OperationalEventEmitter;
+    /** Groups every event emitted by one generation. */
+    correlationId?: string;
   }>,
 ): Promise<WardrobeRecommendation> {
-  const emitter = dependencies.emitter ?? NULL_OPERATIONAL_EVENT_EMITTER;
+  const { emitter, correlationId } = dependencies;
   const startedAt = Date.now();
   const context = await buildRecommendationContext(input, dependencies);
   const availableItemIds = new Set(context.wardrobe.map((item) => item.id));
@@ -130,6 +131,7 @@ export async function generateWardrobeRecommendation(
     name: "recommendation.generation.completed",
     severity: "info",
     outcome: provenance.kind === "provider" ? "success" : "degraded",
+    correlationId,
     durationMs: Date.now() - startedAt,
     attributes: {
       generationSource: provenance.kind,

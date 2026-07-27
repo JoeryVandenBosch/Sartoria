@@ -141,6 +141,14 @@ function normaliseAttributes(
   // Iterating the catalogue rather than the input fixes key order and silently
   // drops anything not declared for this event.
   for (const key of Object.keys(OPERATIONAL_EVENT_CATALOGUE[name].attributes)) {
+    // Own properties only. `validateAttributes` inspects own enumerable
+    // properties, so reading through the prototype chain here would copy a
+    // value that was never validated — an inherited or prototype-polluted
+    // attribute would reach the sink as free text.
+    if (!Object.hasOwn(source, key)) {
+      continue;
+    }
+
     const value = source[key];
 
     if (value === undefined) {

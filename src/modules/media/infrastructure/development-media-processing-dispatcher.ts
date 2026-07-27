@@ -2,6 +2,8 @@ import type { MediaObjectStore } from "@/modules/media/application/media-object-
 import type { MediaProcessingDispatcher } from "@/modules/media/application/media-processing-dispatcher";
 import type { MediaScanner } from "@/modules/media/application/media-scanner";
 import type { WardrobeMediaRepository } from "@/modules/media/application/wardrobe-media-repository";
+import type { OperationalEventEmitter } from "@/lib/observability/operational-event-emitter";
+import { generateCorrelationId } from "@/lib/observability/correlation-id";
 import { processWardrobeMedia } from "@/modules/media/application/process-wardrobe-media";
 
 export class DevelopmentMediaProcessingDispatcher implements MediaProcessingDispatcher {
@@ -11,6 +13,7 @@ export class DevelopmentMediaProcessingDispatcher implements MediaProcessingDisp
       objectStore: MediaObjectStore;
       scanner: MediaScanner;
       now: () => Date;
+      emitter: OperationalEventEmitter;
     }>,
   ) {}
 
@@ -19,6 +22,9 @@ export class DevelopmentMediaProcessingDispatcher implements MediaProcessingDisp
       throw new Error("Development media processing is disabled in production.");
     }
 
-    await processWardrobeMedia(input, this.dependencies);
+    await processWardrobeMedia(input, {
+      ...this.dependencies,
+      correlationId: generateCorrelationId(),
+    });
   }
 }

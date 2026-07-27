@@ -312,3 +312,72 @@ describe("event name allow-list", () => {
     expect(isOperationalEventName("__proto__")).toBe(false);
   });
 });
+
+/**
+ * Regression cover for the review finding on PR #23: validation inspected own
+ * enumerable properties while the envelope builder read through the prototype
+ * chain, so an undeclared value could pass validation and still be serialised.
+ */
+describe("attribute prototype safety", () => {
+  it("drops a catalogue attribute carried on the prototype rather than emitting it", () => {
+    const attributes = Object.create({
+      identitySource: "owner@example.test",
+      failureClassification: "postgres://sartoria:secret@db.internal/sartoria",
+    }) as Record<string, unknown>;
+    attributes.authenticated = true;
+
+    const result = buildOperationalEvent(
+      {
+        name: "auth.session.resolved",
+        severity: "info",
+        outcome: "success",
+        attributes: attributes as never,
+      },
+      CONTEXT,
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const serialised = serialiseOperationalEvent(result.event);
+
+    expect(serialised).not.toContain("owner@example.test");
+    expect(serialised).not.toContain("secret");
+    expect(serialised).not.toContain("identitySource");
+    expect(serialised).toContain('"authenticated":true');
+  });
+
+  it("is unaffected by Object.prototype pollution", () => {
+    const polluted = Object.prototype as unknown as Record<string, unknown>;
+    polluted.failureClassification = "polluted-free-text";
+
+    try {
+      const result = buildOperationalEvent(
+        {
+          name: "auth.session.resolved",
+          severity: "info",
+          outcome: "success",
+          attributes: { identitySource: "development", authenticated: true },
+        },
+        CONTEXT,
+      );
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(serialiseOperationalEvent(result.event)).not.toContain("polluted-free-text");
+    } finally {
+      delete polluted.failureClassification;
+    }
+  });
+
+  it("classifies an inherited Object.prototype key as an unknown attribute key", () => {
+    expect(
+      validateAttributes("database.readiness.checked", { constructor: "anything" }),
+    ).toMatchObject({ valid: false, failure: "unknown-attribute-key", key: "constructor" });
+
+    expect(
+      validateAttributes("database.readiness.checked", { toString: "anything" }),
+    ).toMatchObject({ valid: false, failure: "unknown-attribute-key", key: "toString" });
+  });
+});

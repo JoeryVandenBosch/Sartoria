@@ -14,6 +14,20 @@ import { InMemoryStyleProfileRepository } from "@/modules/profile/infrastructure
 import { createWardrobeItem } from "@/modules/wardrobe/domain/wardrobe-item";
 import { InMemoryWardrobeItemRepository } from "@/modules/wardrobe/infrastructure/in-memory-wardrobe-item-repository";
 import { bootstrapOwner } from "@/modules/staging/application/bootstrap-owner";
+import { processWardrobeMedia } from "@/modules/media/application/process-wardrobe-media";
+import type {
+  MediaObjectStore,
+  MediaUploadPolicy,
+} from "@/modules/media/application/media-object-store";
+import type {
+  MediaScanner,
+  MediaScanResult,
+} from "@/modules/media/application/media-scanner";
+import { InMemoryWardrobeMediaRepository } from "@/modules/media/infrastructure/in-memory-wardrobe-media-repository";
+import {
+  createWardrobeMedia,
+  markWardrobeMediaUploaded,
+} from "@/modules/media/domain/wardrobe-media";
 
 const NOW = new Date("2026-07-25T20:00:00.000Z");
 
@@ -281,6 +295,249 @@ describe("architecture boundary", () => {
         if (contents.includes(`from "${packageName}`) || contents.includes(`require("${packageName}`)) {
           offenders.push(`${path.relative(process.cwd(), file)} -> ${packageName}`);
         }
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+});
+
+/**
+ * Media boundary.
+ *
+ * Added with the fix for the review findings on PR #23: this boundary carries
+ * five emit points across the most branching logic in the slice and previously
+ * had no boundary test at all.
+ */
+class StubMediaObjectStore implements MediaObjectStore {
+  deleted: string[] = [];
+  promoted = 0;
+
+  constructor(private readonly failDelete = false) {}
+
+  async readPrefix(): Promise<Uint8Array> {
+    return new Uint8Array();
+  }
+
+  async streamObject(): Promise<AsyncIterable<Uint8Array>> {
+    return (async function* empty() {})();
+  }
+
+  async createQuarantineUploadPolicy(): Promise<MediaUploadPolicy> {
+    throw new Error("not used");
+  }
+
+  async inspectQuarantineObject(): Promise<null> {
+    return null;
+  }
+
+  async promoteQuarantineObject(): Promise<void> {
+    this.promoted += 1;
+  }
+
+  async createPrivateReadUrl(): Promise<string> {
+    return "https://storage.example.test/private";
+  }
+
+  async deleteObjects(keys: readonly string[]): Promise<void> {
+    if (this.failDelete) {
+      throw new Error("object store unavailable");
+    }
+
+    this.deleted.push(...keys);
+  }
+}
+
+function scannerReturning(result: MediaScanResult): MediaScanner {
+  return { async scan() { return result; } };
+}
+
+async function uploadedMediaRepository(): Promise<InMemoryWardrobeMediaRepository> {
+  const repository = new InMemoryWardrobeMediaRepository();
+  const initiated = createWardrobeMedia({
+    id: "media-1",
+    ownerId: "owner-1",
+    wardrobeItemId: "item-1",
+    originalFilename: "blazer.jpg",
+    declaredContentType: "image/jpeg",
+    now: NOW,
+  });
+  await repository.create(initiated);
+  await repository.update(markWardrobeMediaUploaded(initiated, 1_024, NOW), "initiated");
+
+  return repository;
+}
+
+function mediaDependencies(
+  sink: InMemoryOperationalEventSink,
+  objectStore: MediaObjectStore,
+  mediaRepository: InMemoryWardrobeMediaRepository,
+  scanner: MediaScanner,
+) {
+  return {
+    mediaRepository,
+    objectStore,
+    scanner,
+    now: () => NOW,
+    emitter: createOperationalEventEmitter({ sink, environment: "test", now: () => NOW }),
+  };
+}
+
+const SAFE_SCAN: MediaScanResult = {
+  verdict: "safe",
+  detectedContentType: "image/jpeg",
+  scanner: "clamav",
+  reference: null,
+};
+
+describe("media boundary", () => {
+  it("reports a ready disposition once promotion has persisted", async () => {
+    const sink = new InMemoryOperationalEventSink();
+    const repository = await uploadedMediaRepository();
+    const objectStore = new StubMediaObjectStore();
+
+    const media = await processWardrobeMedia(
+      { mediaId: "media-1", ownerId: "owner-1" },
+      mediaDependencies(sink, objectStore, repository, scannerReturning(SAFE_SCAN)),
+    );
+
+    expect(media?.status).toBe("ready");
+    expect(sink.eventsNamed("media.processing.completed")).toHaveLength(1);
+    expect(sink.events[0]?.attributes).toMatchObject({
+      disposition: "ready",
+      scanVerdict: "safe",
+    });
+  });
+
+  it("reports a rejected disposition for malicious content, with no file detail", async () => {
+    const sink = new InMemoryOperationalEventSink();
+    const repository = await uploadedMediaRepository();
+
+    const media = await processWardrobeMedia(
+      { mediaId: "media-1", ownerId: "owner-1" },
+      mediaDependencies(
+        sink,
+        new StubMediaObjectStore(),
+        repository,
+        scannerReturning({
+          verdict: "malicious",
+          detectedContentType: "image/jpeg",
+          scanner: "clamav",
+          reference: "signature-reference",
+        }),
+      ),
+    );
+
+    expect(media?.status).toBe("rejected");
+    expect(sink.events[0]?.attributes).toMatchObject({
+      disposition: "rejected",
+      scanVerdict: "malicious",
+      rejectionCode: "malware-detected",
+    });
+
+    const serialised = JSON.stringify(sink.events);
+    expect(serialised).not.toContain("signature-reference");
+    expect(serialised).not.toContain("clamav");
+    expect(serialised).not.toContain("blazer.jpg");
+    expect(serialised).not.toContain("quarantine/media-1");
+    expect(serialised).not.toContain("owner-1");
+  });
+
+  it("reports a skipped disposition when the media is not processable", async () => {
+    const sink = new InMemoryOperationalEventSink();
+
+    const media = await processWardrobeMedia(
+      { mediaId: "absent", ownerId: "owner-1" },
+      mediaDependencies(
+        sink,
+        new StubMediaObjectStore(),
+        new InMemoryWardrobeMediaRepository(),
+        scannerReturning(SAFE_SCAN),
+      ),
+    );
+
+    expect(media).toBeNull();
+    expect(sink.events[0]?.attributes).toMatchObject({ disposition: "skipped" });
+  });
+
+  /**
+   * Regression: the rejection event used to be emitted before `rejectAndDelete`
+   * ran, so a storage failure produced an event asserting a transition that
+   * never persisted.
+   */
+  it("emits no rejection event when the rejection itself fails to persist", async () => {
+    const sink = new InMemoryOperationalEventSink();
+    const repository = await uploadedMediaRepository();
+
+    await expect(
+      processWardrobeMedia(
+        { mediaId: "media-1", ownerId: "owner-1" },
+        mediaDependencies(
+          sink,
+          new StubMediaObjectStore(true),
+          repository,
+          scannerReturning({
+            verdict: "malicious",
+            detectedContentType: "image/jpeg",
+            scanner: "clamav",
+            reference: null,
+          }),
+        ),
+      ),
+    ).rejects.toThrow("object store unavailable");
+
+    const persisted = await repository.findByIdForOwner("media-1", "owner-1");
+
+    expect(persisted?.status).toBe("scanning");
+    expect(sink.eventsNamed("media.processing.completed")).toHaveLength(0);
+  });
+
+  it("still processes the media when the sink throws", async () => {
+    const sink = new InMemoryOperationalEventSink({ failOnRecord: true });
+    const repository = await uploadedMediaRepository();
+
+    const media = await processWardrobeMedia(
+      { mediaId: "media-1", ownerId: "owner-1" },
+      mediaDependencies(sink, new StubMediaObjectStore(), repository, scannerReturning(SAFE_SCAN)),
+    );
+
+    expect(media?.status).toBe("ready");
+  });
+});
+
+describe("instrumentation wiring guard", () => {
+  async function applicationFilesUnder(directory: string): Promise<readonly string[]> {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const files: string[] = [];
+
+    for (const entry of entries) {
+      const full = path.join(directory, entry.name);
+
+      if (entry.isDirectory()) {
+        files.push(...(await applicationFilesUnder(full)));
+      } else if (entry.name.endsWith(".ts")) {
+        files.push(full);
+      }
+    }
+
+    return files;
+  }
+
+  /**
+   * An optional emitter is one a composition root can forget. Every production
+   * call site did, which left three of the five boundaries emitting nothing in
+   * any deployed environment while the tests passed. Requiring the dependency
+   * makes `tsc` the guard; this test stops the optional marker coming back.
+   */
+  it("declares the emitter dependency as required in every application use case", async () => {
+    const files = await applicationFilesUnder(path.join(process.cwd(), "src", "modules"));
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      const contents = await readFile(file, "utf8");
+
+      if (/emitter\?\s*:/.test(contents)) {
+        offenders.push(path.relative(process.cwd(), file));
       }
     }
 

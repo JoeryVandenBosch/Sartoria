@@ -8,6 +8,8 @@ import { redirect } from "next/navigation";
 import { getCurrentUserId } from "@/lib/auth/current-user";
 import { getOutfitRepository } from "@/modules/outfits/infrastructure/outfit-repository";
 import { getOutfitWearEventRepository } from "@/modules/outfits/infrastructure/outfit-wear-event-repository";
+import { generateCorrelationId } from "@/lib/observability/correlation-id";
+import { getOperationalEventEmitter } from "@/lib/observability/operational-event-runtime";
 import { generateWardrobeRecommendation } from "@/modules/recommendations/application/generate-wardrobe-recommendation";
 import {
   deleteRecommendation,
@@ -76,6 +78,8 @@ export async function generateRecommendationAction(
         outfitRepository: getOutfitRepository(),
         wearEventRepository: getOutfitWearEventRepository(),
         recommendationRepository: getRecommendationRepository(),
+        emitter: getOperationalEventEmitter(),
+        correlationId: generateCorrelationId(),
         gateway: configuredGateway(),
         createId: randomUUID,
         now: () => new Date(),

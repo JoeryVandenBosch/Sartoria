@@ -159,12 +159,22 @@ export type OperationalEventAttributes<N extends OperationalEventName> = {
 
 export type OperationalEventAttributeValue = boolean | number | string;
 
-/** What a caller supplies. Timestamp, environment, and release are added by the emitter. */
+/**
+ * What a caller supplies. Timestamp, environment, and release are added by the
+ * emitter.
+ *
+ * `correlationId` accepts an explicit `undefined` under
+ * `exactOptionalPropertyTypes` so a boundary can pass an optional identifier
+ * straight through without a conditional spread at every emit. The builder
+ * validates it against the server-shaped pattern and omits the key entirely
+ * when it does not match, `undefined` included — so a widened input type cannot
+ * widen what reaches a sink.
+ */
 export interface OperationalEventInput<N extends OperationalEventName = OperationalEventName> {
   readonly name: N;
   readonly severity: OperationalEventSeverity;
   readonly outcome: OperationalEventOutcome;
-  readonly correlationId?: string;
+  readonly correlationId?: string | undefined;
   readonly durationMs?: number;
   readonly attributes?: OperationalEventAttributes<N>;
 }
@@ -232,6 +242,11 @@ export interface AttributeValidationResult {
  * Validates supplied attributes against the catalogue. Rejects unknown keys,
  * nested objects, arrays, null, non-finite and negative numbers, oversized
  * numbers, and any string outside a declared enumeration.
+ *
+ * Only own enumerable properties are inspected, which is also all the envelope
+ * builder is permitted to copy. The two must agree: if validation ignored
+ * inherited properties while the builder read through the prototype chain, an
+ * undeclared value could pass validation and still reach a sink.
  */
 export function validateAttributes(name: unknown, attributes: unknown): AttributeValidationResult {
   if (!isOperationalEventName(name)) {
@@ -251,6 +266,14 @@ export function validateAttributes(name: unknown, attributes: unknown): Attribut
   for (const [key, value] of Object.entries(attributes)) {
     if (value === undefined) {
       continue;
+    }
+
+    // `Object.hasOwn` rather than a plain index read: `specifications.constructor`
+    // and `specifications.toString` resolve through Object.prototype and would
+    // otherwise be mistaken for declared specifications, producing the wrong
+    // rejection reason.
+    if (!Object.hasOwn(specifications, key)) {
+      return { valid: false, failure: "unknown-attribute-key", key };
     }
 
     const specification = specifications[key];

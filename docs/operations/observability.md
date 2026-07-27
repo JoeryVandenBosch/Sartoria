@@ -130,11 +130,18 @@ Find degraded recommendation generation:
 kubectl logs deploy/sartoria | jq -c 'select(.name == "recommendation.generation.completed" and .outcome == "degraded")'
 ```
 
-Trace one request across boundaries:
+Group the events of one operation:
 
 ```
 kubectl logs deploy/sartoria | jq -c 'select(.correlationId == "9f2c...")'
 ```
+
+A correlation identifier is generated per boundary invocation — one readiness
+probe, one session resolution, one media pipeline run, one generation, one
+bootstrap attempt. It groups the events of that single operation. It does **not**
+yet join the boundaries touched by one HTTP request: propagating an identifier
+across boundaries needs request-scoped context, which this slice does not
+implement. Two events from the same page load will carry different identifiers.
 
 ## Interpreting common signals
 

@@ -1,7 +1,4 @@
-import {
-  NULL_OPERATIONAL_EVENT_EMITTER,
-  type OperationalEventEmitter,
-} from "@/lib/observability/operational-event-emitter";
+import type { OperationalEventEmitter } from "@/lib/observability/operational-event-emitter";
 import type { MediaObjectStore } from "@/modules/media/application/media-object-store";
 import type { MediaScanner } from "@/modules/media/application/media-scanner";
 import type { WardrobeMediaRepository } from "@/modules/media/application/wardrobe-media-repository";
@@ -62,11 +59,18 @@ export async function processWardrobeMedia(
     objectStore: MediaObjectStore;
     scanner: MediaScanner;
     now: () => Date;
-    /** Optional so existing callers and tests are unaffected. */
-    emitter?: OperationalEventEmitter;
+    /**
+     * Required. An optional emitter let every production call site omit it
+     * silently, which left this boundary emitting nothing at all. A caller that
+     * genuinely wants no telemetry passes `NULL_OPERATIONAL_EVENT_EMITTER` and
+     * says so.
+     */
+    emitter: OperationalEventEmitter;
+    /** Groups every event emitted by one pipeline run. */
+    correlationId?: string;
   }>,
 ): Promise<WardrobeMedia | null> {
-  const emitter = dependencies.emitter ?? NULL_OPERATIONAL_EVENT_EMITTER;
+  const { emitter, correlationId } = dependencies;
   const startedAt = Date.now();
   const pending = await dependencies.mediaRepository.findByIdForOwner(
     input.mediaId,
@@ -78,6 +82,7 @@ export async function processWardrobeMedia(
       name: "media.processing.completed",
       severity: "info",
       outcome: "skipped",
+      correlationId,
       durationMs: Date.now() - startedAt,
       attributes: { disposition: "skipped" },
     });
@@ -88,6 +93,8 @@ export async function processWardrobeMedia(
   const scanning = markWardrobeMediaScanning(pending, dependencies.now());
   await dependencies.mediaRepository.update(scanning, pending.status);
 
+  let ready: WardrobeMedia;
+
   try {
     const result = await dependencies.scanner.scan({
       mediaId: scanning.id,
@@ -95,18 +102,17 @@ export async function processWardrobeMedia(
     });
 
     if (result.verdict === "malicious") {
-      emitter.emit({
-        name: "media.processing.completed",
-        severity: "warning",
-        outcome: "failure",
-        durationMs: Date.now() - startedAt,
-        attributes: {
-          disposition: "rejected",
-          scanVerdict: "malicious",
-          rejectionCode: "malware-detected",
-        },
-      });
-
+      // Emitted from the fulfilment handler, not before the call: the previous
+      // ordering reported `rejected` before the object deletion and repository
+      // update had happened, so a storage failure produced an event asserting a
+      // transition that never persisted.
+      //
+      // Attached rather than awaited on purpose. `return promise` inside a
+      // `try` does not route that promise's rejection into the `catch` — the
+      // implicit await happens after the block completes. Switching to
+      // `return await` would change which domain state is persisted on this
+      // path, which is a domain fix, not an observability one. Keeping the
+      // attachment preserves the existing exception routing exactly.
       return rejectAndDelete(
         scanning,
         {
@@ -116,7 +122,22 @@ export async function processWardrobeMedia(
           scanReference: result.reference,
         },
         dependencies,
-      );
+      ).then((rejected) => {
+        emitter.emit({
+          name: "media.processing.completed",
+          severity: "warning",
+          outcome: "failure",
+          correlationId,
+          durationMs: Date.now() - startedAt,
+          attributes: {
+            disposition: "rejected",
+            scanVerdict: "malicious",
+            rejectionCode: "malware-detected",
+          },
+        });
+
+        return rejected;
+      });
     }
 
     if (
@@ -124,19 +145,9 @@ export async function processWardrobeMedia(
       !result.detectedContentType ||
       !mediaTypesCompatible(scanning.declaredContentType, result.detectedContentType)
     ) {
-      emitter.emit({
-        name: "media.processing.completed",
-        severity: "warning",
-        outcome: "failure",
-        durationMs: Date.now() - startedAt,
-        attributes: {
-          disposition: "rejected",
-          // The declared and detected content types are deliberately omitted:
-          // they describe the user's file, not the health of the pipeline.
-          scanVerdict: result.verdict === "safe" ? "safe" : "unsupported",
-          rejectionCode: "unsupported-type",
-        },
-      });
+      // See the malicious branch: emitted only once the rejection has persisted,
+      // and attached rather than awaited to preserve exception routing.
+      const scanVerdict = result.verdict === "safe" ? "safe" : "unsupported";
 
       return rejectAndDelete(
         scanning,
@@ -147,7 +158,24 @@ export async function processWardrobeMedia(
           scanReference: result.reference,
         },
         dependencies,
-      );
+      ).then((rejected) => {
+        emitter.emit({
+          name: "media.processing.completed",
+          severity: "warning",
+          outcome: "failure",
+          correlationId,
+          durationMs: Date.now() - startedAt,
+          attributes: {
+            disposition: "rejected",
+            // The declared and detected content types are deliberately omitted:
+            // they describe the user's file, not the health of the pipeline.
+            scanVerdict,
+            rejectionCode: "unsupported-type",
+          },
+        });
+
+        return rejected;
+      });
     }
 
     const privateKey = `private/${scanning.id}`;
@@ -157,7 +185,7 @@ export async function processWardrobeMedia(
       detectedContentType: result.detectedContentType,
     });
 
-    const ready = markWardrobeMediaReady(scanning, {
+    ready = markWardrobeMediaReady(scanning, {
       detectedContentType: result.detectedContentType,
       privateKey,
       scanner: result.scanner,
@@ -165,16 +193,6 @@ export async function processWardrobeMedia(
       now: dependencies.now(),
     });
     await dependencies.mediaRepository.update(ready, "scanning");
-
-    emitter.emit({
-      name: "media.processing.completed",
-      severity: "info",
-      outcome: "success",
-      durationMs: Date.now() - startedAt,
-      attributes: { disposition: "ready", scanVerdict: "safe" },
-    });
-
-    return ready;
   } catch (error) {
     const failed = failWardrobeMedia(scanning, null, dependencies.now());
     await dependencies.mediaRepository.update(failed, "scanning");
@@ -185,6 +203,7 @@ export async function processWardrobeMedia(
       name: "media.processing.completed",
       severity: "error",
       outcome: "failure",
+      correlationId,
       durationMs: Date.now() - startedAt,
       attributes: {
         disposition: "failed",
@@ -195,4 +214,18 @@ export async function processWardrobeMedia(
 
     throw error;
   }
+
+  // Emitted outside the try. Inside it, a telemetry fault would have been routed
+  // into the catch above, which persists the media as failed — a domain state
+  // change caused by observability.
+  emitter.emit({
+    name: "media.processing.completed",
+    severity: "info",
+    outcome: "success",
+    correlationId,
+    durationMs: Date.now() - startedAt,
+    attributes: { disposition: "ready", scanVerdict: "safe" },
+  });
+
+  return ready;
 }

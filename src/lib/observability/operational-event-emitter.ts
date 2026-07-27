@@ -7,6 +7,7 @@ import {
   resolveRelease,
   type OperationalEventSink,
 } from "@/lib/observability/operational-event-sink";
+import { guardProcessStderr } from "@/lib/observability/process-stream-guard";
 import type {
   DeploymentEnvironment,
   OperationalEventInput,
@@ -38,6 +39,10 @@ export type SinkFailureSignal = (classification: "dependency-unavailable" | "une
 const DEFAULT_SINK_FAILURE_SIGNAL: SinkFailureSignal = (classification) => {
   // Deliberately not an operational event, and deliberately not the sink.
   // Bounded, constant text: no event, no error object, no stack.
+  //
+  // The stream is guarded first: stderr can break exactly as stdout can, and an
+  // unlistened stream error would escape every try/catch on this path.
+  guardProcessStderr();
   process.stderr.write(`sartoria observability sink failed: ${classification}\n`);
 };
 

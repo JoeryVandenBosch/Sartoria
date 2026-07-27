@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NULL_OPERATIONAL_EVENT_EMITTER } from "@/lib/observability/operational-event-emitter";
 
 import { completeWardrobeMediaUpload } from "@/modules/media/application/complete-wardrobe-media-upload";
 import { deleteWardrobeMediaForOwner } from "@/modules/media/application/delete-wardrobe-media";
@@ -209,6 +210,7 @@ describe("private media application", () => {
     const ready = await processWardrobeMedia(
       { mediaId: uploaded.id, ownerId: uploaded.ownerId },
       {
+      emitter: NULL_OPERATIONAL_EVENT_EMITTER,
         mediaRepository,
         objectStore,
         scanner: new FixedScanner({
@@ -259,6 +261,7 @@ describe("private media application", () => {
     const rejected = await processWardrobeMedia(
       { mediaId: uploaded.id, ownerId: uploaded.ownerId },
       {
+      emitter: NULL_OPERATIONAL_EVENT_EMITTER,
         mediaRepository,
         objectStore,
         scanner: new FixedScanner({

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NULL_OPERATIONAL_EVENT_EMITTER } from "@/lib/observability/operational-event-emitter";
 
 import { generateWardrobeRecommendation } from "@/modules/recommendations/application/generate-wardrobe-recommendation";
 import type {
@@ -97,6 +98,7 @@ async function dependencies(gateway: RecommendationGateway | null, consent = fal
     gateway,
     createId: () => "recommendation-1",
     now: () => new Date("2026-07-25T21:00:00.000Z"),
+    emitter: NULL_OPERATIONAL_EVENT_EMITTER,
   };
 }
 

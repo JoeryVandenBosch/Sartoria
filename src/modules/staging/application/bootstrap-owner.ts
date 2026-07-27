@@ -1,9 +1,6 @@
 import { createHash } from "node:crypto";
 
-import {
-  NULL_OPERATIONAL_EVENT_EMITTER,
-  type OperationalEventEmitter,
-} from "@/lib/observability/operational-event-emitter";
+import type { OperationalEventEmitter } from "@/lib/observability/operational-event-emitter";
 
 export type BootstrapIdentityInput = Readonly<{
   name: string;
@@ -75,11 +72,16 @@ export async function bootstrapOwner(
     store: OwnerBootstrapStore;
     createAuthenticationUser: (input: BootstrapIdentityInput) => Promise<CreatedAuthenticationUser>;
     now: () => Date;
-    /** Optional so existing callers and tests are unaffected. */
-    emitter?: OperationalEventEmitter;
+    /**
+     * Required, so a composition root cannot leave this boundary dark by
+     * omission. Pass `NULL_OPERATIONAL_EVENT_EMITTER` to opt out deliberately.
+     */
+    emitter: OperationalEventEmitter;
+    /** Groups every event emitted by one bootstrap attempt. */
+    correlationId?: string;
   }>,
 ): Promise<BootstrapOwnerResult> {
-  const emitter = dependencies.emitter ?? NULL_OPERATIONAL_EVENT_EMITTER;
+  const { emitter, correlationId } = dependencies;
   const owner = normalizeIdentity(input.owner);
   const isolationUser = normalizeIdentity(input.isolationUser);
   if (owner.email === isolationUser.email) {
@@ -87,6 +89,7 @@ export async function bootstrapOwner(
       name: "staging.identity.bootstrapped",
       severity: "error",
       outcome: "failure",
+      correlationId,
       attributes: { identitiesCreated: 0, failureClassification: "validation" },
     });
 
@@ -112,6 +115,7 @@ export async function bootstrapOwner(
       name: "staging.identity.bootstrapped",
       severity: "error",
       outcome: "failure",
+      correlationId,
       attributes: { identitiesCreated: 2, failureClassification: "conflict" },
     });
 
@@ -133,6 +137,7 @@ export async function bootstrapOwner(
     name: "staging.identity.bootstrapped",
     severity: "info",
     outcome: "success",
+    correlationId,
     attributes: { identitiesCreated: 2, identitiesAlreadyPresent: 0 },
   });
 
