@@ -145,6 +145,30 @@ Planned vertical slices, in order:
 5. **Privacy and retention controls** — approved retention schedule, account deletion workflow completion, private-media deletion verification, support process, privacy notice, and terms.
 6. **Closed-beta release gate** — complete staging evidence, named operators, incident contacts, support process, deployment rehearsal, security review, and explicit human release approval.
 
+### Prerequisite — wardrobe item correction and lifecycle
+
+Identified during Phase 8A implementation and raised here rather than in Phase 8 because it is a functional gap, not refinement.
+
+Wardrobe items are **create-only**. There is no update and no delete: the domain exposes `createWardrobeItem` and nothing else, and the application layer holds only creation and queries. Every other entity in the product is correctable — outfits support update, delete, and delete-with-history; wear events support correction and deletion; recommendations support correction, rejection, and deletion. The wardrobe item, which every one of those references, is the single exception.
+
+Three consequences make this a closed-beta prerequisite rather than a later improvement:
+
+1. **The wish-list lifecycle cannot complete.** An item recorded as wish-list can never be marked owned. Buying something you planned to buy is a core product loop, and it currently has no ending.
+2. **Mistakes are permanent.** A mistyped name, wrong colour, or wrong acquisition cost cannot be corrected. Cost feeds cost-per-wear, so a single typo permanently distorts the insights the product exists to provide.
+3. **README already promises this.** It advertises revision-safe editing and correction of user-owned facts. That promise holds everywhere except the foundational entity.
+
+A closed beta invites real people to enter real wardrobes. They will make mistakes on the first evening, and they will buy something from their wish list in the first month. Neither is currently recoverable.
+
+Scope when implemented:
+
+- edit an item's name, brand, category, colour, fit notes, and acquisition cost, honouring the existing domain rule that cost belongs only to owned items;
+- change ownership status, including the wish-list to owned transition, with the acquisition cost that transition implies;
+- archive and restore an item without deleting its history;
+- delete an item, with explicit handling of outfits and wear history that reference it, following the precedent already set by `delete-outfit-with-history`;
+- owner isolation and an audit trail consistent with the rest of the product.
+
+Sequencing: **before closed-beta acceptance, after the six slices above or in parallel with them.** It does not block any of those slices and none of them block it.
+
 Exit criteria:
 
 - each slice has acceptance criteria, tests, operations guidance, rollback, and review evidence;
@@ -152,7 +176,7 @@ Exit criteria:
 - lint, strict types, unit/application tests, build, Chromium E2E, and deployment contract checks are green;
 - live staging issue `#17` is complete before closed-beta acceptance.
 
-Status: **not started; approved next repository-owned phase**.
+Status: **in progress. Slices 1 and 2 implemented and awaiting independent review; slice 3 specified. Wardrobe item correction identified as an additional prerequisite.**
 
 ## Phase 8 — Product refinement after closed beta
 
