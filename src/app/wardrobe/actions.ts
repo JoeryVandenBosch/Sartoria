@@ -20,7 +20,7 @@ function formValue(formData: FormData, name: string): string {
 }
 
 export async function createWardrobeItemAction(
-  _previousState: WardrobeItemFormState,
+  previousState: WardrobeItemFormState,
   formData: FormData,
 ): Promise<WardrobeItemFormState> {
   const candidate = {
@@ -40,6 +40,7 @@ export async function createWardrobeItemAction(
       status: "error",
       message: "Review the highlighted fields.",
       fieldErrors: result.error.flatten().fieldErrors,
+      submissionId: (previousState.submissionId ?? 0) + 1,
     };
   }
 
@@ -61,5 +62,7 @@ export async function createWardrobeItemAction(
     status: "success",
     message: `${item.name} was added to your wardrobe.`,
     fieldErrors: {},
+    createdItemId: item.id,
+    submissionId: (previousState.submissionId ?? 0) + 1,
   };
 }
