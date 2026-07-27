@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth/auth";
 import { createDatabasePool } from "@/lib/database/database-session";
 import { getPostgresPool } from "@/lib/database/postgres-pool";
+import { generateCorrelationId } from "@/lib/observability/correlation-id";
+import { getOperationalEventEmitter } from "@/lib/observability/operational-event-runtime";
 import { verifyBearerToken } from "@/lib/security/internal-token";
 import {
   bootstrapOwner,
@@ -65,6 +67,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         operatorReference: parsed.data.operatorReference ?? null,
       },
       {
+        emitter: getOperationalEventEmitter(),
+        correlationId: generateCorrelationId(),
         store: new PostgresOwnerBootstrapStore(createDatabasePool(getPostgresPool())),
         createAuthenticationUser: async (input) => {
           const response: unknown = await auth.api.createUser({

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { NULL_OPERATIONAL_EVENT_EMITTER } from "@/lib/observability/operational-event-emitter";
 
 import { describe, expect, it, vi } from "vitest";
 
@@ -52,6 +53,7 @@ describe("bootstrapOwner", () => {
     ];
 
     const result = await bootstrapOwner(request, {
+      emitter: NULL_OPERATIONAL_EVENT_EMITTER,
       store,
       createAuthenticationUser,
       now: () => times.shift() ?? new Date("2026-07-26T08:00:01.000Z"),
@@ -102,6 +104,7 @@ describe("bootstrapOwner", () => {
 
     await expect(
       bootstrapOwner(request, {
+      emitter: NULL_OPERATIONAL_EVENT_EMITTER,
         store,
         createAuthenticationUser,
         now: () => new Date("2026-07-26T08:00:00.000Z"),
@@ -116,6 +119,7 @@ describe("bootstrapOwner", () => {
 
     await expect(
       bootstrapOwner(request, {
+      emitter: NULL_OPERATIONAL_EVENT_EMITTER,
         store,
         createAuthenticationUser: async (input) => {
           attempt += 1;
@@ -139,6 +143,7 @@ describe("bootstrapOwner", () => {
           isolationUser: { ...request.isolationUser, email: "owner@example.com" },
         },
         {
+      emitter: NULL_OPERATIONAL_EVENT_EMITTER,
           store,
           createAuthenticationUser: vi.fn(),
           now: () => new Date("2026-07-26T08:00:00.000Z"),

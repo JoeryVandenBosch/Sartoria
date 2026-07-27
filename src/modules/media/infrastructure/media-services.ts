@@ -4,6 +4,7 @@ import type { MediaObjectStore } from "@/modules/media/application/media-object-
 import type { MediaProcessingDispatcher } from "@/modules/media/application/media-processing-dispatcher";
 import type { MediaScanner } from "@/modules/media/application/media-scanner";
 import type { WardrobeMediaRepository } from "@/modules/media/application/wardrobe-media-repository";
+import { getOperationalEventEmitter } from "@/lib/observability/operational-event-runtime";
 
 import { ClamAvMediaScanner, createClamAvMediaScanner } from "./clamav-media-scanner";
 import { DevelopmentMediaProcessingDispatcher } from "./development-media-processing-dispatcher";
@@ -105,6 +106,7 @@ export function getMediaProcessingDispatcher(): MediaProcessingDispatcher {
       objectStore: developmentMediaObjectStore,
       scanner: new DevelopmentMediaScanner(developmentMediaObjectStore),
       now: () => new Date(),
+      emitter: getOperationalEventEmitter(),
     });
   }
 
