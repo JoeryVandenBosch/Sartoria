@@ -79,14 +79,27 @@ export const OPERATIONAL_EVENT_CATALOGUE = {
     },
   },
 
-  /** Media processing lifecycle. No file name, key, URL, byte content, or owner. */
+  /**
+   * Media processing lifecycle. Never a file name, quarantine or private key,
+   * signed URL, byte content, scan reference, scanner name, or owner.
+   *
+   * Values mirror the media domain vocabulary so operators read the same terms
+   * the code uses.
+   */
   "media.processing.completed": {
     attributes: {
-      stage: {
+      /** Terminal disposition of the pipeline run. */
+      disposition: {
         kind: "enum",
-        values: ["received", "scanned", "transformed", "published"],
+        values: ["ready", "rejected", "failed", "skipped"],
       },
-      scanVerdict: { kind: "enum", values: ["clean", "infected", "unavailable"] },
+      /** Mirrors MediaScanVerdict. */
+      scanVerdict: { kind: "enum", values: ["safe", "malicious", "unsupported"] },
+      /** Mirrors the domain rejection codes. */
+      rejectionCode: {
+        kind: "enum",
+        values: ["malware-detected", "unsupported-type"],
+      },
       failureClassification: FAILURE_CLASSIFICATION,
     },
   },
