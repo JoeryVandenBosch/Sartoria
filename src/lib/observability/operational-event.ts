@@ -132,6 +132,27 @@ export const OPERATIONAL_EVENT_CATALOGUE = {
     },
   },
 
+  /**
+   * Rate limit decision. Carries the policy and the outcome only: never an
+   * address, address digest, owner, counter value, or limit configuration.
+   */
+  "rate.limit.evaluated": {
+    attributes: {
+      policy: {
+        kind: "enum",
+        values: [
+          "auth.attempt",
+          "media.upload.initiate",
+          "recommendation.generate",
+          "profile.export",
+          "internal.endpoint",
+        ],
+      },
+      decision: { kind: "enum", values: ["denied", "failed-open"] },
+      failureClassification: FAILURE_CLASSIFICATION,
+    },
+  },
+
   /** Emitted only by the local failure signal when a sink itself fails. Never recursive. */
   "observability.sink.failed": {
     attributes: {
