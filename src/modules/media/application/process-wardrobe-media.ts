@@ -1,3 +1,7 @@
+import {
+  NULL_OPERATIONAL_EVENT_EMITTER,
+  type OperationalEventEmitter,
+} from "@/lib/observability/operational-event-emitter";
 import type { MediaObjectStore } from "@/modules/media/application/media-object-store";
 import type { MediaScanner } from "@/modules/media/application/media-scanner";
 import type { WardrobeMediaRepository } from "@/modules/media/application/wardrobe-media-repository";
@@ -58,14 +62,26 @@ export async function processWardrobeMedia(
     objectStore: MediaObjectStore;
     scanner: MediaScanner;
     now: () => Date;
+    /** Optional so existing callers and tests are unaffected. */
+    emitter?: OperationalEventEmitter;
   }>,
 ): Promise<WardrobeMedia | null> {
+  const emitter = dependencies.emitter ?? NULL_OPERATIONAL_EVENT_EMITTER;
+  const startedAt = Date.now();
   const pending = await dependencies.mediaRepository.findByIdForOwner(
     input.mediaId,
     input.ownerId,
   );
 
   if (!pending || (pending.status !== "uploaded" && pending.status !== "failed")) {
+    emitter.emit({
+      name: "media.processing.completed",
+      severity: "info",
+      outcome: "skipped",
+      durationMs: Date.now() - startedAt,
+      attributes: { disposition: "skipped" },
+    });
+
     return null;
   }
 
@@ -79,6 +95,18 @@ export async function processWardrobeMedia(
     });
 
     if (result.verdict === "malicious") {
+      emitter.emit({
+        name: "media.processing.completed",
+        severity: "warning",
+        outcome: "failure",
+        durationMs: Date.now() - startedAt,
+        attributes: {
+          disposition: "rejected",
+          scanVerdict: "malicious",
+          rejectionCode: "malware-detected",
+        },
+      });
+
       return rejectAndDelete(
         scanning,
         {
@@ -96,6 +124,20 @@ export async function processWardrobeMedia(
       !result.detectedContentType ||
       !mediaTypesCompatible(scanning.declaredContentType, result.detectedContentType)
     ) {
+      emitter.emit({
+        name: "media.processing.completed",
+        severity: "warning",
+        outcome: "failure",
+        durationMs: Date.now() - startedAt,
+        attributes: {
+          disposition: "rejected",
+          // The declared and detected content types are deliberately omitted:
+          // they describe the user's file, not the health of the pipeline.
+          scanVerdict: result.verdict === "safe" ? "safe" : "unsupported",
+          rejectionCode: "unsupported-type",
+        },
+      });
+
       return rejectAndDelete(
         scanning,
         {
@@ -123,10 +165,34 @@ export async function processWardrobeMedia(
       now: dependencies.now(),
     });
     await dependencies.mediaRepository.update(ready, "scanning");
+
+    emitter.emit({
+      name: "media.processing.completed",
+      severity: "info",
+      outcome: "success",
+      durationMs: Date.now() - startedAt,
+      attributes: { disposition: "ready", scanVerdict: "safe" },
+    });
+
     return ready;
   } catch (error) {
     const failed = failWardrobeMedia(scanning, null, dependencies.now());
     await dependencies.mediaRepository.update(failed, "scanning");
+
+    // The error is classified, never serialised. It is rethrown unchanged so
+    // existing failure handling is preserved exactly.
+    emitter.emit({
+      name: "media.processing.completed",
+      severity: "error",
+      outcome: "failure",
+      durationMs: Date.now() - startedAt,
+      attributes: {
+        disposition: "failed",
+        failureClassification:
+          (error as { name?: unknown })?.name === "TimeoutError" ? "timeout" : "unexpected",
+      },
+    });
+
     throw error;
   }
 }

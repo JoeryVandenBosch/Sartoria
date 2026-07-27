@@ -1,3 +1,7 @@
+import {
+  NULL_OPERATIONAL_EVENT_EMITTER,
+  type OperationalEventEmitter,
+} from "@/lib/observability/operational-event-emitter";
 import { buildRecommendationContext } from "@/modules/recommendations/application/build-recommendation-context";
 import { createDeterministicRecommendation } from "@/modules/recommendations/application/deterministic-recommendation-fallback";
 import type { RecommendationGateway } from "@/modules/recommendations/application/recommendation-gateway";
@@ -34,8 +38,16 @@ export async function generateWardrobeRecommendation(
     gateway: RecommendationGateway | null;
     createId: () => string;
     now: () => Date;
+    /**
+     * Optional so existing callers and tests are unaffected. Injected rather
+     * than resolved globally, keeping this use case pure and independent of
+     * observability configuration.
+     */
+    emitter?: OperationalEventEmitter;
   }>,
 ): Promise<WardrobeRecommendation> {
+  const emitter = dependencies.emitter ?? NULL_OPERATIONAL_EVENT_EMITTER;
+  const startedAt = Date.now();
   const context = await buildRecommendationContext(input, dependencies);
   const availableItemIds = new Set(context.wardrobe.map((item) => item.id));
 
@@ -111,5 +123,20 @@ export async function generateWardrobeRecommendation(
   });
 
   await dependencies.recommendationRepository.create(recommendation);
+
+  // Provenance only: never the prompt, profile, wardrobe contents, item
+  // identifiers, provider name, model name, or provider response.
+  emitter.emit({
+    name: "recommendation.generation.completed",
+    severity: "info",
+    outcome: provenance.kind === "provider" ? "success" : "degraded",
+    durationMs: Date.now() - startedAt,
+    attributes: {
+      generationSource: provenance.kind,
+      fellBackToDeterministic: provenance.kind === "fallback",
+      ...(provenance.reasonCode === null ? {} : { fallbackReason: provenance.reasonCode }),
+    },
+  });
+
   return recommendation;
 }
