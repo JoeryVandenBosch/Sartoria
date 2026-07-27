@@ -156,7 +156,29 @@ Status: **not started; approved next repository-owned phase**.
 
 ## Phase 8 — Product refinement after closed beta
 
-Candidate work after Phase 7B evidence:
+### 8A — Wardrobe browsing
+
+The first Phase 8 slice, specified ahead of time because the ordering decision inside it is architectural rather than cosmetic.
+
+Ordered by value, not by request order:
+
+1. **Ownership status filter** — owned, wish-list, archived. Ranked first because it corrects a conceptual muddle rather than a scale problem: the list currently mixes items the person owns with items they are only considering, although the domain already treats those differently. Wish-list items cannot be packed or worn, and archived items are out of rotation. The interface should not hide a distinction the model takes seriously.
+2. **Category filter** — shirts, trousers, tailoring, outerwear, and the remaining declared categories. Necessary beyond roughly thirty items.
+3. **Tile and list view toggle** — tiles for visual recognition once private imagery is attached, list for scanning brand, category, and cost. Tile view carries little information until items have images, so this slice follows image attachment rather than preceding it.
+4. **Filter and view state held in the URL**, for example `/wardrobe?view=list&status=owned&category=shirts`. This is the decision that is expensive to reverse. The wardrobe page is a server component; URL state keeps it one, survives refresh, is bookmarkable, works without client JavaScript, and avoids hydration mismatch. Client-held state would push the listing towards client-side fetching, which is a materially larger change than it appears.
+5. **Filter options derived from the items actually present, with counts.** Offering every declared category regardless of contents is noise; a category the person owns nothing in should not be offered.
+6. **Search by item name.** The cheapest useful addition beyond roughly one hundred items. Deferred until browsing exists.
+7. **Sort by recently added, name, or acquisition cost.** Useful, not urgent.
+
+Explicitly excluded from this slice:
+
+- faceted counts that recalculate as filters are applied. The complexity is real and the benefit at private-wardrobe scale is not;
+- saved or shareable filter presets;
+- bulk selection and bulk editing.
+
+Status: **specified; not started. Begins after Phase 7B.**
+
+### 8B — Remaining refinement candidates
 
 - mobile-first wardrobe capture and editing refinement;
 - faster outfit composition and comparison;
@@ -166,6 +188,15 @@ Candidate work after Phase 7B evidence:
 - accessibility and performance refinements from real beta evidence.
 
 Status: **backlog; prioritise from observed private-beta needs**.
+
+## Work completed ahead of its phase
+
+Recorded so the sequence remains honest rather than implied:
+
+- **wardrobe image attachment at creation time** (#25) — Phase 8 usability work brought forward because the media pipeline already existed and the four-step create, find, open, upload sequence was a barrier to evaluating the product;
+- **development-only synthetic wardrobe seed** (#24) — not product scope; exists so the application can be evaluated in a realistic state.
+
+Neither changes the closed-beta gate. Phase 7B remains the path to real users.
 
 ## Explicitly outside private V1
 
