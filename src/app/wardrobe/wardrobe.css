@@ -441,3 +441,42 @@
     margin-inline: -0.35rem;
   }
 }
+
+/*
+ * Correction form.
+ *
+ * Collapsed by default: eight fields shown always would bury the item they
+ * describe, especially on a phone. Opening it is a deliberate act, which suits
+ * a form that changes recorded facts.
+ */
+
+.item-edit {
+  border-top: 1px solid rgba(23, 32, 50, 0.08);
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+}
+
+.item-edit > summary {
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  list-style: none;
+}
+
+.item-edit > summary::-webkit-details-marker {
+  display: none;
+}
+
+.item-edit > summary::after {
+  content: " ↓";
+  opacity: 0.45;
+}
+
+.item-edit[open] > summary::after {
+  content: " ↑";
+}
+
+.item-edit-form {
+  margin-top: 1.25rem;
+}
