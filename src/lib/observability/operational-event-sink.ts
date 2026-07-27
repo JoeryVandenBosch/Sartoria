@@ -24,7 +24,7 @@ export interface OperationalEventSink {
  * passed through, so arbitrary configuration text can never reach a sink.
  */
 export function resolveDeploymentEnvironment(
-  configuredEnvironment: string | undefined = process.env.SARTORIA_DEPLOYMENT_ENVIRONMENT,
+  configuredEnvironment: string | undefined = process.env.SARTORIA_DEPLOYMENT_ENV,
   nodeEnvironment: string | undefined = process.env.NODE_ENV,
 ): DeploymentEnvironment {
   const candidate = configuredEnvironment?.trim().toLowerCase();

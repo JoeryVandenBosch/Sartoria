@@ -17,7 +17,7 @@ There is no way to answer "which account is failing" from telemetry alone. If th
 | Variable | Values | Default | Purpose |
 |---|---|---|---|
 | `SARTORIA_OBSERVABILITY_SINK` | `console`, `none` | `console`, or `none` under test | Selects the destination |
-| `SARTORIA_DEPLOYMENT_ENVIRONMENT` | `development`, `test`, `staging`, `production`, `unknown` | Derived from `NODE_ENV` | Labels the environment |
+| `SARTORIA_DEPLOYMENT_ENV` | `development`, `test`, `staging`, `production`, `unknown` | Derived from `NODE_ENV` | Labels the environment |
 | `SARTORIA_RELEASE` | `[A-Za-z0-9._-]{1,64}` | unset | Labels the release |
 
 Unrecognised values fail safe rather than failing closed:
