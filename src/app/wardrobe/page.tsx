@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { getCurrentUserId } from "@/lib/auth/current-user";
+import {
+  categoryFacets,
+  filterWardrobeItems,
+  parseWardrobeBrowseSelection,
+  statusFacets,
+  wardrobeBrowseHref,
+} from "@/modules/wardrobe/application/browse-wardrobe-items";
 import { listWardrobeItemsForOwner } from "@/modules/wardrobe/application/query-wardrobe-items";
 import { getWardrobeRepository } from "@/modules/wardrobe/infrastructure/wardrobe-repository";
 
@@ -13,6 +20,10 @@ export const metadata: Metadata = {
   title: "Wardrobe",
 };
 
+function statusLabel(status: string): string {
+  return status === "wish-list" ? "Wish list" : categoryLabel(status);
+}
+
 function categoryLabel(category: string): string {
   return category
     .split("-")
@@ -20,9 +31,19 @@ function categoryLabel(category: string): string {
     .join(" ");
 }
 
-export default async function WardrobePage() {
+export default async function WardrobePage({
+  searchParams,
+}: Readonly<{
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}>) {
   const ownerId = await getCurrentUserId();
-  const items = await listWardrobeItemsForOwner(ownerId, getWardrobeRepository());
+  const allItems = await listWardrobeItemsForOwner(ownerId, getWardrobeRepository());
+
+  const selection = parseWardrobeBrowseSelection(await searchParams);
+  const items = filterWardrobeItems(allItems, selection);
+  const statuses = statusFacets(allItems);
+  const categories = categoryFacets(allItems, selection.status);
+  const filtered = selection.status !== undefined || selection.category !== undefined;
 
   return (
     <div className="page-frame wardrobe-page">
@@ -43,12 +64,117 @@ export default async function WardrobePage() {
             <div className="eyebrow">Collection</div>
             <h2 id="wardrobe-list-title">Wardrobe items</h2>
           </div>
-          <span className="item-count">
-            {items.length} {items.length === 1 ? "item" : "items"}
-          </span>
+          <div className="wardrobe-controls">
+            <span className="item-count">
+              {items.length} {items.length === 1 ? "item" : "items"}
+            </span>
+            <div aria-label="View" className="wardrobe-view-toggle" role="group">
+              {(["tile", "list"] as const).map((view) => (
+                <Link
+                  aria-current={selection.view === view ? "true" : undefined}
+                  className="wardrobe-view-option"
+                  href={wardrobeBrowseHref(selection, { view })}
+                  key={view}
+                  replace
+                  scroll={false}
+                >
+                  {view === "tile" ? "Tiles" : "List"}
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {items.length === 0 ? (
+        {allItems.length > 0 ? (
+          <nav aria-label="Wardrobe filters" className="wardrobe-filters">
+            <div className="wardrobe-filter-group">
+              <span aria-hidden="true" className="wardrobe-filter-label">
+                Status
+              </span>
+              <div className="wardrobe-filter-options">
+                <Link
+                  aria-current={selection.status === undefined ? "true" : undefined}
+                  className="wardrobe-filter-option"
+                  href={wardrobeBrowseHref(selection, { status: undefined })}
+                  replace
+                  scroll={false}
+                >
+                  All <span className="wardrobe-filter-count">{allItems.length}</span>
+                </Link>
+                {statuses.map((facet) => (
+                  <Link
+                    aria-current={selection.status === facet.value ? "true" : undefined}
+                    aria-label={`Show ${statusLabel(facet.value).toLowerCase()} items, ${facet.count}`}
+                    className="wardrobe-filter-option"
+                    href={wardrobeBrowseHref(selection, {
+                      status: facet.value,
+                      // Clearing the category avoids landing on a combination
+                      // that matches nothing.
+                      category: undefined,
+                    })}
+                    key={facet.value}
+                    replace
+                    scroll={false}
+                  >
+                    {statusLabel(facet.value)}{" "}
+                    <span className="wardrobe-filter-count">{facet.count}</span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            {categories.length > 1 ? (
+              <details className="wardrobe-filter-group wardrobe-filter-disclosure">
+                <summary>
+                  {selection.category === undefined
+                    ? "All categories"
+                    : categoryLabel(selection.category)}
+                </summary>
+                <div className="wardrobe-filter-options">
+                  <Link
+                    aria-current={selection.category === undefined ? "true" : undefined}
+                    className="wardrobe-filter-option"
+                    href={wardrobeBrowseHref(selection, { category: undefined })}
+                    replace
+                    scroll={false}
+                  >
+                    All
+                  </Link>
+                  {categories.map((facet) => (
+                    <Link
+                      aria-current={selection.category === facet.value ? "true" : undefined}
+                      aria-label={`Show ${categoryLabel(facet.value).toLowerCase()}, ${facet.count}`}
+                      className="wardrobe-filter-option"
+                      href={wardrobeBrowseHref(selection, { category: facet.value })}
+                      key={facet.value}
+                      replace
+                      scroll={false}
+                    >
+                      {categoryLabel(facet.value)}{" "}
+                      <span className="wardrobe-filter-count">{facet.count}</span>
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            ) : null}
+          </nav>
+        ) : null}
+
+        {items.length === 0 && filtered ? (
+          <div className="empty-state">
+            <div>
+              <h3>Nothing matches this selection.</h3>
+              <p>
+                Your wardrobe holds {allItems.length}{" "}
+                {allItems.length === 1 ? "item" : "items"}.{" "}
+                <Link className="text-link" href="/wardrobe?status=all">
+                  Show everything
+                </Link>
+                .
+              </p>
+            </div>
+          </div>
+        ) : items.length === 0 ? (
           <div className="empty-state">
             <span aria-hidden="true" className="empty-state-number">
               01
@@ -62,7 +188,7 @@ export default async function WardrobePage() {
             </div>
           </div>
         ) : (
-          <div className="wardrobe-grid">
+          <div className={selection.view === "list" ? "wardrobe-list" : "wardrobe-grid"}>
             {items.map((item) => (
               <article className="wardrobe-card" key={item.id}>
                 <div className="wardrobe-card-visual" aria-hidden="true">
@@ -72,6 +198,11 @@ export default async function WardrobePage() {
                   <div className="wardrobe-card-meta">
                     <span>{categoryLabel(item.category)}</span>
                     <span>{item.primaryColor}</span>
+                    {item.ownershipStatus !== "owned" ? (
+                      <span className="wardrobe-card-status">
+                        {statusLabel(item.ownershipStatus)}
+                      </span>
+                    ) : null}
                   </div>
                   <h3>{item.name}</h3>
                   <p>{item.brand ?? "Brand not recorded"}</p>

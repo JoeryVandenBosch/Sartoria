@@ -441,3 +441,215 @@
     margin-inline: -0.35rem;
   }
 }
+
+/* Browsing controls: filters and view toggle (Phase 8A). */
+
+.wardrobe-controls {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+.wardrobe-view-toggle {
+  border: 1px solid rgba(23, 32, 50, 0.14);
+  border-radius: 999px;
+  display: inline-flex;
+  overflow: hidden;
+}
+
+.wardrobe-view-option {
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  padding: 0.4rem 0.9rem;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.wardrobe-view-option[aria-current="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.wardrobe-filters {
+  border-top: 1px solid rgba(23, 32, 50, 0.08);
+  display: grid;
+  gap: 0.9rem;
+  margin-bottom: 1.75rem;
+  padding-top: 1.25rem;
+}
+
+.wardrobe-filter-group {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.wardrobe-filter-label {
+  color: var(--bronze);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  min-width: 5rem;
+  text-transform: uppercase;
+}
+
+.wardrobe-filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.wardrobe-filter-option {
+  border: 1px solid rgba(23, 32, 50, 0.12);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  padding: 0.32rem 0.8rem;
+  text-decoration: none;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.wardrobe-filter-option:hover {
+  border-color: rgba(23, 32, 50, 0.3);
+}
+
+.wardrobe-filter-option[aria-current="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.wardrobe-filter-count {
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* List view: denser, prioritising brand, category, and colour over imagery. */
+
+.wardrobe-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.wardrobe-list .wardrobe-card {
+  align-items: center;
+  grid-template-columns: 4.5rem 1fr;
+}
+
+.wardrobe-list .wardrobe-card-visual {
+  aspect-ratio: 1;
+  border-radius: var(--radius-medium);
+  height: 100%;
+}
+
+.wardrobe-list .wardrobe-card-visual span {
+  font-size: 1.6rem;
+}
+
+.wardrobe-list .wardrobe-card-copy {
+  align-items: baseline;
+  column-gap: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0.9rem 1.25rem;
+}
+
+.wardrobe-list .wardrobe-card-copy h3 {
+  font-size: 1.05rem;
+  margin: 0;
+  order: 1;
+}
+
+.wardrobe-list .wardrobe-card-meta {
+  order: 2;
+}
+
+.wardrobe-list .wardrobe-card-copy p {
+  margin: 0;
+  order: 3;
+}
+
+.wardrobe-list .wardrobe-card-copy .text-link {
+  margin-left: auto;
+  order: 4;
+}
+
+@media (max-width: 60rem) {
+  .wardrobe-filter-label {
+    min-width: 100%;
+  }
+
+  .wardrobe-list .wardrobe-card-copy {
+    display: grid;
+    gap: 0.25rem;
+  }
+}
+
+.wardrobe-card-status {
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  padding: 0.05rem 0.45rem;
+}
+
+/*
+ * Mobile-first restraint.
+ *
+ * The wardrobe is a phone product first. Status is four short options and stays
+ * visible; category can run to thirteen and is placed behind a native
+ * disclosure, which needs no JavaScript and stays keyboard reachable. Before
+ * this, filters occupied 28% of an iPhone screen and the first garment sat
+ * below the fold.
+ */
+
+.wardrobe-filter-disclosure > summary {
+  border: 1px solid rgba(23, 32, 50, 0.12);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: inline-block;
+  font-size: 0.82rem;
+  list-style: none;
+  padding: 0.32rem 0.9rem;
+}
+
+.wardrobe-filter-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.wardrobe-filter-disclosure > summary::after {
+  content: " ↓";
+  opacity: 0.45;
+}
+
+.wardrobe-filter-disclosure[open] > summary::after {
+  content: " ↑";
+}
+
+.wardrobe-filter-disclosure[open] > summary {
+  margin-bottom: 0.6rem;
+}
+
+@media (max-width: 48rem) {
+  /* Labels are redundant beside self-describing options, and cost a line each. */
+  .wardrobe-filter-label {
+    display: none;
+  }
+
+  .wardrobe-filters {
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding-top: 0.9rem;
+  }
+
+  .wardrobe-controls {
+    gap: 0.6rem;
+  }
+
+  /* One garment per row reads better than two cramped ones on a phone. */
+  .wardrobe-grid {
+    grid-template-columns: 1fr;
+  }
+}
