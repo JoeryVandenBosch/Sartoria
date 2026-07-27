@@ -1,4 +1,7 @@
-import { createWardrobeItem, type NewWardrobeItem } from "@/modules/wardrobe/domain/wardrobe-item";
+import {
+  createWardrobeItem,
+  type NewWardrobeItem,
+} from "@/modules/wardrobe/domain/wardrobe-item";
 import type { InMemoryWardrobeItemRepository } from "./in-memory-wardrobe-item-repository";
 
 /**
@@ -140,9 +143,8 @@ const SEED_ITEMS: readonly Omit<NewWardrobeItem, "ownerId">[] = [
     category: "outerwear",
     name: "Tan suede bomber",
     primaryColor: "Tan",
+    // No acquisition cost: the domain records cost only for owned items.
     ownershipStatus: "archived",
-    acquisitionCostMinor: 39_000,
-    acquisitionCurrency: "EUR",
     fitNotes: "Tight across the shoulders. Kept for now.",
   },
   {
@@ -208,7 +210,9 @@ export function developmentSeedRequested(
   flag: string | undefined = process.env.SARTORIA_DEV_SEED,
   nodeEnvironment: string | undefined = process.env.NODE_ENV,
 ): boolean {
-  return nodeEnvironment !== "production" && flag?.trim().toLowerCase() === "true";
+  return (
+    nodeEnvironment !== "production" && flag?.trim().toLowerCase() === "true"
+  );
 }
 
 /**
@@ -233,14 +237,25 @@ export async function seedDevelopmentWardrobe(
   const base = new Date("2026-01-15T09:00:00.000Z").getTime();
 
   for (const [index, item] of SEED_ITEMS.entries()) {
-    await repository.save(
-      createWardrobeItem(
-        { ...item, ownerId: SEED_OWNER_ID },
-        {
-          createId: () => `seed-item-${String(index + 1).padStart(2, "0")}`,
-          now: () => new Date(base + index * 86_400_000),
-        },
-      ),
-    );
+    try {
+      await repository.save(
+        createWardrobeItem(
+          { ...item, ownerId: SEED_OWNER_ID },
+          {
+            createId: () => `seed-item-${String(index + 1).padStart(2, "0")}`,
+            now: () => new Date(base + index * 86_400_000),
+          },
+        ),
+      );
+    } catch (error) {
+      // A rejected seed item is a defect in this file, not a runtime condition.
+      // Reporting it and continuing prevents one bad entry from silently
+      // truncating the whole collection, which is how an earlier version
+      // produced twelve items instead of twenty.
+      console.error(
+        `[sartoria] development seed item ${index + 1} (${item.name}) was rejected:`,
+        error instanceof Error ? error.message : error,
+      );
+    }
   }
 }
