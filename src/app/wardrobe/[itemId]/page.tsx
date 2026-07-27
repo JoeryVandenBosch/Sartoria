@@ -14,6 +14,7 @@ import { getWardrobeRepository } from "@/modules/wardrobe/infrastructure/wardrob
 
 import { MediaDeleteButton } from "./media-delete-button";
 import { MediaUploadForm } from "./media-upload-form";
+import { WardrobeItemEditForm } from "./wardrobe-item-edit-form";
 
 type WardrobeItemPageProps = Readonly<{
   params: Promise<{ itemId: string }>;
@@ -125,6 +126,8 @@ export default async function WardrobeItemPage({ params }: WardrobeItemPageProps
           </section>
         </div>
       </article>
+
+      <WardrobeItemEditForm item={item} />
 
       <section aria-labelledby="private-media-title" className="private-media-section">
         <div className="section-heading-row">

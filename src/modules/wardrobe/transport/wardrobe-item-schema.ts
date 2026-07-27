@@ -4,6 +4,7 @@ import {
   ownershipStatuses,
   wardrobeCategories,
   type NewWardrobeItem,
+  type WardrobeItemRevision,
 } from "@/modules/wardrobe/domain/wardrobe-item";
 
 const acquisitionAmountPattern = /^\d{1,9}(?:[.,]\d{1,2})?$/u;
@@ -81,6 +82,29 @@ export function parseNewWardrobeItem(
 
   return {
     ownerId,
+    category: parsed.category,
+    name: parsed.name,
+    brand: parsed.brand || null,
+    primaryColor: parsed.primaryColor,
+    ownershipStatus: parsed.ownershipStatus,
+    fitNotes: parsed.fitNotes || null,
+    acquisitionCostMinor: acquisitionCostMinor(parsed.acquisitionCost),
+    acquisitionCurrency: parsed.acquisitionCurrency || null,
+  };
+}
+
+/**
+ * Parses a correction submitted from the item detail page.
+ *
+ * The same schema governs creation and correction, so an item cannot be edited
+ * into a state the create form would have rejected. Every field is present in
+ * the edit form, so a revision is a full replacement rather than a patch —
+ * which keeps the acquisition rules checkable in one place.
+ */
+export function wardrobeItemRevisionFrom(
+  parsed: z.output<typeof wardrobeItemFormSchema>,
+): WardrobeItemRevision {
+  return {
     category: parsed.category,
     name: parsed.name,
     brand: parsed.brand || null,
