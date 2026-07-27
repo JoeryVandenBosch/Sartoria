@@ -69,7 +69,13 @@ Two scopes only.
 
 **Owner scope** uses the authenticated owner identifier already resolved by the request. It is never read from a request body or query parameter.
 
-**Client network identity** is derived from the trusted proxy header configured for the deployment, falling back to the socket address. The derived value is immediately hashed with a per-process salt and only the digest is retained, so the limiter never stores an address. When no trusted proxy is configured, the header is ignored entirely, because an attacker-supplied forwarding header would otherwise let a caller mint unlimited identities.
+**Client network identity** is derived from the trusted proxy header configured for the deployment, falling back to the socket address where available. The derived value is immediately hashed with a per-process salt and only the digest is retained, so the limiter never stores an address. When no trusted proxy is configured, the header is ignored entirely, because an attacker-supplied forwarding header would otherwise let a caller mint unlimited identities.
+
+When no address can be determined, a client-scoped policy is **unenforceable**. The request is permitted and the gap is reported as an operational event.
+
+This corrects an earlier draft of this specification, which stated that unidentifiable callers should share a single bucket. That would have been actively harmful rather than merely weak: one caller could exhaust the shared authentication bucket and lock out every legitimate person, turning a protection into a denial-of-service vector and contradicting acceptance criterion 11. Permitting and reporting is the correct failure mode, and it makes the deployment requirement visible instead of silently harmful.
+
+Client-scoped policies therefore require `SARTORIA_TRUST_PROXY_HEADERS=true` and a proxy that sets a trustworthy forwarding header. This must be stated prominently in operations guidance, because a deployment that omits it gets no client-scoped protection at all.
 
 ## Required behaviour
 
@@ -90,6 +96,7 @@ Two scopes only.
 6. No domain module imports the rate limiter, enforced by an executable architecture guard.
 7. Limiter state contains no email address, account identifier, raw client address, token, header, or request body, proven by test.
 8. A client-supplied forwarding header cannot mint additional identities when no trusted proxy is configured, proven by test.
+8a. When callers cannot be told apart, a client-scoped policy permits the request and reports itself unenforceable, rather than applying a shared bucket.
 9. An unknown or malformed policy configuration fails closed at construction with a clear error, and never results in an unlimited policy.
 10. The in-memory adapter evicts expired entries and enforces a documented maximum tracked-key count.
 11. Sign-in remains usable for a legitimate person after another identity has been limited.

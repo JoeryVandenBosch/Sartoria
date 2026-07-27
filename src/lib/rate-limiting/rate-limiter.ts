@@ -61,7 +61,14 @@ export function createRateLimiter(options: CreateRateLimiterOptions = {}): RateL
       }
 
       try {
-        const result = await store.increment(key, policy.windowSeconds, now());
+        // Namespacing happens here rather than relying on the caller to derive
+        // a per-policy key. Isolation between policies is then structural: two
+        // policies cannot share a counter even if handed an identical key.
+        const result = await store.increment(
+          `${policyName}\u0000${key}`,
+          policy.windowSeconds,
+          now(),
+        );
         const allowed = result.count <= policy.limit;
 
         if (!allowed) {

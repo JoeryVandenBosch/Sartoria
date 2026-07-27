@@ -46,16 +46,20 @@ export function ownerKey(ownerId: string, policy: RateLimitPolicyName): string {
 }
 
 /**
- * Key for a client-scoped policy.
+ * Key for a client-scoped policy, or `undefined` when callers cannot be told
+ * apart.
  *
  * A forwarding header is honoured only when a trusted proxy is configured.
- * Otherwise it is ignored entirely: an unauthenticated caller could otherwise
- * set a fresh value per request and mint unlimited identities, which would make
- * the limiter trivially bypassable while still appearing to work.
+ * Otherwise it is ignored entirely: an unauthenticated caller could set a fresh
+ * value per request and mint unlimited identities, which would make the limiter
+ * trivially bypassable while still appearing to work.
  *
- * When no address can be determined, all such callers share one bucket. That is
- * deliberate. Sharing a bucket degrades gracefully under load; issuing a unique
- * key per unidentifiable caller would silently disable the limit.
+ * When no address can be determined, this returns `undefined` rather than a
+ * shared key. Grouping every unidentifiable caller into one bucket would turn
+ * the limiter into a denial-of-service vector: a single attacker could exhaust
+ * the shared authentication bucket and lock out every legitimate person. An
+ * unenforceable policy must therefore permit the request and be reported, so
+ * the deployment gap is visible rather than silently harmful.
  */
 export function clientKey(
   input: Readonly<{
@@ -64,14 +68,18 @@ export function clientKey(
     trustProxy?: boolean;
   }>,
   policy: RateLimitPolicyName,
-): string {
+): string | undefined {
   const trustProxy =
     input.trustProxy ?? process.env.SARTORIA_TRUST_PROXY_HEADERS?.trim() === "true";
 
   const forwarded = trustProxy ? firstForwardedAddress(input.forwardedFor) : undefined;
   const address = forwarded ?? input.socketAddress?.trim();
 
-  return digest("client", address && address.length > 0 ? address : "unidentified", policy);
+  if (!address || address.length === 0) {
+    return undefined;
+  }
+
+  return digest("client", address, policy);
 }
 
 /**

@@ -148,7 +148,7 @@ export const OPERATIONAL_EVENT_CATALOGUE = {
           "internal.endpoint",
         ],
       },
-      decision: { kind: "enum", values: ["denied", "failed-open"] },
+      decision: { kind: "enum", values: ["denied", "failed-open", "unenforceable"] },
       failureClassification: FAILURE_CLASSIFICATION,
     },
   },
