@@ -86,12 +86,12 @@ export default async function WardrobePage({
         </div>
 
         {allItems.length > 0 ? (
-          <div className="wardrobe-filters">
+          <nav aria-label="Wardrobe filters" className="wardrobe-filters">
             <div className="wardrobe-filter-group">
-              <span className="wardrobe-filter-label" id="wardrobe-status-filter">
+              <span aria-hidden="true" className="wardrobe-filter-label">
                 Status
               </span>
-              <div className="wardrobe-filter-options" aria-labelledby="wardrobe-status-filter">
+              <div className="wardrobe-filter-options">
                 <Link
                   aria-current={selection.status === undefined ? "true" : undefined}
                   className="wardrobe-filter-option"
@@ -104,6 +104,7 @@ export default async function WardrobePage({
                 {statuses.map((facet) => (
                   <Link
                     aria-current={selection.status === facet.value ? "true" : undefined}
+                    aria-label={`Show ${statusLabel(facet.value).toLowerCase()} items, ${facet.count}`}
                     className="wardrobe-filter-option"
                     href={wardrobeBrowseHref(selection, {
                       status: facet.value,
@@ -124,13 +125,10 @@ export default async function WardrobePage({
 
             {categories.length > 1 ? (
               <div className="wardrobe-filter-group">
-                <span className="wardrobe-filter-label" id="wardrobe-category-filter">
+                <span aria-hidden="true" className="wardrobe-filter-label">
                   Category
                 </span>
-                <div
-                  className="wardrobe-filter-options"
-                  aria-labelledby="wardrobe-category-filter"
-                >
+                <div className="wardrobe-filter-options">
                   <Link
                     aria-current={selection.category === undefined ? "true" : undefined}
                     className="wardrobe-filter-option"
@@ -143,6 +141,7 @@ export default async function WardrobePage({
                   {categories.map((facet) => (
                     <Link
                       aria-current={selection.category === facet.value ? "true" : undefined}
+                      aria-label={`Show ${categoryLabel(facet.value).toLowerCase()}, ${facet.count}`}
                       className="wardrobe-filter-option"
                       href={wardrobeBrowseHref(selection, { category: facet.value })}
                       key={facet.value}
@@ -156,7 +155,7 @@ export default async function WardrobePage({
                 </div>
               </div>
             ) : null}
-          </div>
+          </nav>
         ) : null}
 
         {items.length === 0 && filtered ? (
@@ -197,6 +196,11 @@ export default async function WardrobePage({
                   <div className="wardrobe-card-meta">
                     <span>{categoryLabel(item.category)}</span>
                     <span>{item.primaryColor}</span>
+                    {item.ownershipStatus !== "owned" ? (
+                      <span className="wardrobe-card-status">
+                        {statusLabel(item.ownershipStatus)}
+                      </span>
+                    ) : null}
                   </div>
                   <h3>{item.name}</h3>
                   <p>{item.brand ?? "Brand not recorded"}</p>

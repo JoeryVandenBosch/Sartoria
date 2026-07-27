@@ -41,14 +41,15 @@ const ITEMS: readonly WardrobeItem[] = [
 ];
 
 describe("browse selection parsing", () => {
-  it("defaults to owned items in tile view", () => {
+  it("applies no status filter by default, so nothing is hidden", () => {
     const selection = parseWardrobeBrowseSelection({});
 
     expect(selection).toEqual({
       view: DEFAULT_WARDROBE_VIEW,
-      status: DEFAULT_STATUS_FILTER,
+      status: undefined,
       category: undefined,
     });
+    expect(DEFAULT_STATUS_FILTER).toBeUndefined();
   });
 
   it("reads a recognised view, status, and category", () => {
@@ -57,8 +58,9 @@ describe("browse selection parsing", () => {
     ).toEqual({ view: "list", status: "wish-list", category: "tailoring" });
   });
 
-  it("treats status=all as no status filter", () => {
+  it("treats an unrecognised status as no filter rather than matching nothing", () => {
     expect(parseWardrobeBrowseSelection({ status: "all" }).status).toBeUndefined();
+    expect(parseWardrobeBrowseSelection({ status: "borrowed" }).status).toBeUndefined();
   });
 
   it.each([
@@ -142,7 +144,7 @@ describe("facets", () => {
 });
 
 describe("href construction", () => {
-  const base = { view: "tile", status: "owned", category: undefined } as const;
+  const base = { view: "tile", status: undefined, category: undefined } as const;
 
   it("omits defaults so the common URL stays clean", () => {
     expect(wardrobeBrowseHref(base)).toBe("/wardrobe");
@@ -152,8 +154,9 @@ describe("href construction", () => {
     expect(wardrobeBrowseHref(base, { view: "list" })).toBe("/wardrobe?view=list");
   });
 
-  it("encodes an absent status filter explicitly", () => {
-    expect(wardrobeBrowseHref(base, { status: undefined })).toBe("/wardrobe?status=all");
+  it("encodes a chosen status and omits the absent one", () => {
+    expect(wardrobeBrowseHref(base, { status: "owned" })).toBe("/wardrobe?status=owned");
+    expect(wardrobeBrowseHref(base, { status: undefined })).toBe("/wardrobe");
   });
 
   it("preserves parameters that are not being changed", () => {

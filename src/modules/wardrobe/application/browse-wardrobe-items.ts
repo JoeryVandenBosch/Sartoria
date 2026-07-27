@@ -20,13 +20,18 @@ export type WardrobeView = (typeof WARDROBE_VIEWS)[number];
 export const DEFAULT_WARDROBE_VIEW: WardrobeView = "tile";
 
 /**
- * The status shown when none is requested.
+ * No status filter is applied by default.
  *
- * Owned is the default rather than "all" because it answers the question the
- * page asks — what you own — without mixing in items the person is only
- * considering or has taken out of rotation.
+ * An earlier version defaulted to owned items, reasoning that the page asks
+ * what you own. That was wrong in practice: adding a wish-list item from the
+ * form on this page made it vanish from the listing, which reads as a failed
+ * save rather than a filter.
+ *
+ * The conceptual distinction between owned, wish-list, and archived is instead
+ * carried by the filter and by a status marker on each non-owned card, so it is
+ * visible without anything being hidden.
  */
-export const DEFAULT_STATUS_FILTER: OwnershipStatus = "owned";
+export const DEFAULT_STATUS_FILTER: OwnershipStatus | undefined = undefined;
 
 export interface WardrobeBrowseSelection {
   readonly view: WardrobeView;
@@ -58,12 +63,9 @@ export function parseWardrobeBrowseSelection(
     ? (rawView as WardrobeView)
     : DEFAULT_WARDROBE_VIEW;
 
-  const status =
-    rawStatus === "all"
-      ? undefined
-      : (ownershipStatuses as readonly string[]).includes(rawStatus ?? "")
-        ? (rawStatus as OwnershipStatus)
-        : DEFAULT_STATUS_FILTER;
+  const status = (ownershipStatuses as readonly string[]).includes(rawStatus ?? "")
+    ? (rawStatus as OwnershipStatus)
+    : DEFAULT_STATUS_FILTER;
 
   const category = (wardrobeCategories as readonly string[]).includes(rawCategory ?? "")
     ? (rawCategory as WardrobeCategory)
@@ -140,9 +142,7 @@ export function wardrobeBrowseHref(
     params.set("view", next.view);
   }
 
-  if (next.status === undefined) {
-    params.set("status", "all");
-  } else if (next.status !== DEFAULT_STATUS_FILTER) {
+  if (next.status !== undefined) {
     params.set("status", next.status);
   }
 

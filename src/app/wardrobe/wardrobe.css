@@ -586,3 +586,10 @@
     gap: 0.25rem;
   }
 }
+
+.wardrobe-card-status {
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  padding: 0.05rem 0.45rem;
+}

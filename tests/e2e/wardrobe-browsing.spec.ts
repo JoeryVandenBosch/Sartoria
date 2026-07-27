@@ -24,11 +24,12 @@ test("filters by status and category, and switches view", async ({ page }, testI
     await expect(page.getByText(`${item.name} was added to your wardrobe.`)).toBeVisible();
   }
 
-  // Owned is the default, so the wish-list item is not shown.
+  // Nothing is hidden by default: adding a wish-list item and having it vanish
+  // would read as a failed save.
   await expect(page.getByRole("heading", { name: `Oxford ${suffix}` })).toBeVisible();
-  await expect(page.getByRole("heading", { name: `Flannel suit ${suffix}` })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: `Flannel suit ${suffix}` })).toBeVisible();
 
-  await page.getByRole("link", { name: /^Wish list/ }).click();
+  await page.getByRole("link", { name: /wish list items/i }).click();
   await expect(page).toHaveURL(/status=wish-list/);
   await expect(page.getByRole("heading", { name: `Flannel suit ${suffix}` })).toBeVisible();
   await expect(page.getByRole("heading", { name: `Oxford ${suffix}` })).toHaveCount(0);
@@ -43,7 +44,7 @@ test("filters by status and category, and switches view", async ({ page }, testI
 });
 
 test("reports an empty selection without implying an empty wardrobe", async ({ page }) => {
-  await page.goto("/wardrobe?status=archived");
+  await page.goto("/wardrobe?status=archived&category=dresses");
 
   const heading = page.getByRole("heading", { name: "Nothing matches this selection." });
 
