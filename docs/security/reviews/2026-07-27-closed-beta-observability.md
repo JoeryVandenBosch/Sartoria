@@ -10,7 +10,9 @@
 
 ## Scope
 
-Adds operational event emission at five boundaries. No change to authentication, authorisation, data model, migrations, storage, or any user-facing behaviour.
+Adds operational event emission at five boundaries. The emitter is a **required** dependency on all three application use cases, and every composition root supplies it, so all five boundaries emit in a deployed environment. No change to authentication, authorisation, data model, migrations, storage, or any user-facing behaviour.
+
+> **Corrected after independent review.** The original text claimed emission at five boundaries. That was true of the code and false of the deployment: the emitter was optional and no composition root passed one, so three of the five boundaries emitted nothing anywhere (finding H1). Making the dependency required turns `tsc` into the guard.
 
 ## Threat model
 
@@ -18,11 +20,15 @@ Adds operational event emission at five boundaries. No change to authentication,
 
 **Severity:** high. Wardrobe data reveals possessions, spending, body measurements, and travel plans.
 
-**Mitigation, structural.** Attribute values are constrained by the type system to boolean, bounded non-negative integer, or a member of a declared enumeration. Free-form strings are not representable. An author cannot express an email address, identifier, media key, signed URL, prompt, measurement, or destination even deliberately.
+**Mitigation, structural, in two layers.** First, the type system constrains attribute values to boolean, bounded non-negative integer, or a member of a declared enumeration, so free-form strings are not representable at compile time. Second, validator and envelope builder share an own-property discipline: both inspect only own enumerable properties, so a value that was never validated cannot be copied into an envelope.
+
+> **Corrected after independent review.** The original text claimed an author could not express forbidden content "even deliberately". That was a compile-time guarantee only. At runtime, validation inspected own enumerable properties while the builder read through the prototype chain, so an inherited or prototype-polluted attribute passed validation and was serialised verbatim — reproduced with a real email address and a `postgres://` credential string (finding M1). The second layer above is the fix.
 
 **Residual risk.** A future maintainer could add a free-text attribute to the catalogue. Mitigated by a test that walks the entire catalogue and asserts every attribute is of kind `boolean`, `count`, or `enum`; adding a free-text field fails CI.
 
-**Verification.** `tests/observability/operational-event.test.ts` — twelve forbidden-content categories refused as enum values and under undeclared keys. `tests/observability/boundary-instrumentation.test.ts` — serialised boundary output asserted not to contain a supplied destination, free-text note, owner identifier, item identifier, colour, email, password, or operator reference.
+**Verification.** `tests/observability/operational-event.test.ts` — twelve forbidden-content categories refused as enum values and under undeclared keys, plus prototype-carried and `Object.prototype`-polluted attributes. `tests/observability/boundary-instrumentation.test.ts` covers the recommendation, staging, and media boundaries; `tests/observability/auth-boundary.test.ts` covers auth. The readiness boundary emits no attributes other than a bounded classification.
+
+> **Corrected after independent review.** The original text implied boundary output was asserted clean across boundaries. Only two of five had boundary tests (finding L1). Media coverage was added with the fix commit, auth in the follow-up.
 
 ### T2 — Exception content leaks through error handling
 
@@ -44,7 +50,9 @@ Adds operational event emission at five boundaries. No change to authentication,
 
 **Severity:** medium. A synchronous throw or unobserved rejection in an emission path could break a request or crash the process.
 
-**Mitigation.** `emit` returns `void` and never throws. Containment is layered: invalid events dropped at construction, synchronous throws caught, asynchronous rejections observed via an attached handler. A failure signal that itself throws is also caught. The signal writes one bounded line to stderr and never re-enters the sink, so a failing sink cannot recurse.
+**Mitigation.** `emit` returns `void` and never throws. Containment is layered in four parts: invalid events dropped at construction, synchronous throws caught, asynchronous rejections observed via an attached handler, and asynchronous stream errors absorbed by a guard installed on both process output streams (`src/lib/observability/process-stream-guard.ts`). A failure signal that itself throws is also caught. The signal writes one bounded line to stderr and never re-enters the sink, so a failing sink cannot recurse.
+
+> **Corrected after independent review.** The original text named three layers and claimed telemetry could not interrupt a workflow "under any condition". It omitted the failure mode of the only production sink: a broken stdout pipe surfaces as an asynchronous stream `error` event, which escapes `emit`'s try/catch entirely and reaches `uncaughtException` (finding M4). The fourth layer is the fix. Note that emission at two call sites also sat inside control-flow-bearing `try` blocks, where a telemetry fault would have turned a healthy readiness probe into a 503 or persisted a media record as failed (finding M3); both emits now sit outside those blocks.
 
 **Verification.** Tested at the unit level and at a real boundary: a recommendation is produced successfully with a sink configured to throw.
 
@@ -52,7 +60,9 @@ Adds operational event emission at five boundaries. No change to authentication,
 
 **Severity:** medium.
 
-**Mitigation.** Sixteen random bytes, hex-encoded, non-semantic, server-generated per operation. A client-supplied value is never trusted: anything not exactly server-shaped is replaced. Identifiers are not persisted and not linked to accounts.
+**Mitigation.** Sixteen random bytes, hex-encoded, non-semantic, generated per boundary invocation. No boundary accepts a client-supplied identifier. If one ever does, it must validate the candidate with `isCorrelationId` and generate a fresh identifier on any mismatch. Identifiers are not persisted and not linked to accounts.
+
+> **Corrected after independent review.** The original text described `resolveCorrelationId`, a helper that had no call site anywhere and has since been removed. More seriously, no boundary generated an identifier at all, so this mitigation described a control that did not exist and the runbook documented a tracing procedure that could not work (finding H2). Every boundary now generates one per invocation.
 
 ### T6 — Observability coupling reaches domain modules
 
@@ -75,7 +85,7 @@ Adds operational event emission at five boundaries. No change to authentication,
 | `schemaVersion`, `name`, `severity`, `outcome`, `environment` | non-personal | fixed vocabulary |
 | `timestamp` | non-personal | server clock |
 | `release` | non-personal | pattern-validated deployment label |
-| `correlationId` | pseudonymous, ephemeral | random, unlinked, not persisted |
+| `correlationId` | pseudonymous, ephemeral | random, unlinked, not persisted. Groups the events of a single operation; not propagated across boundaries within one request |
 | `durationMs` | non-personal | bounded integer |
 | `attributes` | non-personal | booleans, counts, declared enums only |
 
@@ -95,7 +105,20 @@ No secret, token, cookie, header, request body, or response body is read or emit
 
 ## Findings
 
-No high or medium findings.
+**Superseded by independent review.** This section originally read "No high or medium findings". Independent risk-level-3 review of PR #23 raised **two high and four medium**, recorded in `reviews/pr-23-closed-beta-observability-independent-review.md`:
+
+| Finding | Summary | Status |
+|---|---|---|
+| H1 | three of five boundaries emitted nothing in any deployed environment | fixed |
+| H2 | correlation identifiers implemented, documented, never used | fixed |
+| M1 | free text could reach a sink through the prototype chain | fixed |
+| M2 | media rejection events asserted a transition that had not persisted | fixed |
+| M3 | emission sat inside control-flow-bearing `try` blocks | fixed |
+| M4 | containment did not cover the only production sink's actual failure mode | fixed |
+
+Of the six low findings, L1 and L3 are fixed. **L2, L4 and L5 remain open**: the pre-scan path in `processWardrobeMedia` still emits nothing on a repository failure; there is no volume note for `auth.session.resolved`, which fires on every page load; and the handoff metadata was stale, now corrected.
+
+The fix commits have **not** themselves been independently reviewed.
 
 **Low — L1.** The `identitiesCreated` and `identitiesAlreadyPresent` counts share the generic bound of 86,400,000 while realistically never exceeding 2. Harmless, since a count cannot carry content, but a tighter per-attribute bound would express intent more precisely. Not blocking; recorded for a future refinement.
 
