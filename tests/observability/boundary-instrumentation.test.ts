@@ -260,6 +260,31 @@ describe("architecture boundary", () => {
     expect(offenders).toEqual([]);
   });
 
+  it("no domain module imports the rate limiter", async () => {
+    const moduleRoot = path.join(process.cwd(), "src", "modules");
+    const modules = await readdir(moduleRoot, { withFileTypes: true });
+    const offenders: string[] = [];
+
+    for (const moduleEntry of modules) {
+      if (!moduleEntry.isDirectory()) continue;
+
+      let files: readonly string[];
+      try {
+        files = await typescriptFilesUnder(path.join(moduleRoot, moduleEntry.name, "domain"));
+      } catch {
+        continue;
+      }
+
+      for (const file of files) {
+        if ((await readFile(file, "utf8")).includes("lib/rate-limiting")) {
+          offenders.push(path.relative(process.cwd(), file));
+        }
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   it("no source file imports a third-party observability or telemetry SDK", async () => {
     const files = await typescriptFilesUnder(path.join(process.cwd(), "src"));
     const forbiddenPackages = [
