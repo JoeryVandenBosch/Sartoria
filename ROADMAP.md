@@ -198,6 +198,27 @@ Recorded so the sequence remains honest rather than implied:
 
 Neither changes the closed-beta gate. Phase 7B remains the path to real users.
 
+## Deferred candidates requiring a product decision before implementation
+
+Recorded so a future session does not build these without the missing decision being made first. Neither is scheduled.
+
+### Visual similarity search against retailer catalogues
+
+Raised by the repository owner: from a wardrobe photo, or a photo taken in a store, search retailer catalogues for visually similar items available to buy, in the style of the M.R Porter app's camera search.
+
+**Product fit is genuinely good.** It extends what Sartoria already does — ground a recommendation in an item the person actually owns or is considering — rather than introducing generic fashion-content browsing, which the product explicitly avoids. The quarantine-first photo pipeline already exists and would carry over unchanged.
+
+**Not a small feature.** It requires visual similarity search (embeddings and a vector index, not a simple lookup), a licensed or partnered product catalogue from one or more retailers, and likely affiliate or referral commercial terms. Matching against retailer photography also raises image rights questions this product has not needed to consider before. This is closer to a second product line than an addition to the wardrobe screen.
+
+**Deferred for a reason specific to this product's stated goal, not only cost.** The repository owner's stated intent is a future acquisition or partnership with a retailer such as M.R Porter, Farfetch, or LuisaViaRoma. Building this now would force a choice before that conversation happens:
+
+- built against one retailer's catalogue, it takes a side pre-emptively, which is awkward if a different retailer is later approached;
+- built as neutral cross-retailer search, it becomes a shopping and discovery product, which `## Explicitly outside private V1` below excludes from this product for a reason — a retailer already has world-class product search, and competing with that is not the path to being acquired by one of them.
+
+The stronger position for that outcome is the private wardrobe graph itself: what someone owns, what they are missing, and their preferences, expressed with restraint. That is harder for a retailer to replicate than catalogue search, and is plausibly what makes this product worth acquiring rather than worth competing with.
+
+**Revisit only after** an acquisition or partnership conversation has happened, or a deliberate decision has been made about which retailer relationship, if any, this product is built toward. Until then, treat this as explicitly out of scope, not merely unscheduled.
+
 ## Explicitly outside private V1
 
 - public community profiles;
