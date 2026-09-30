@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { nextCookies } from "better-auth/next-js";
-import { admin } from "better-auth/plugins";
+import { admin, bearer } from "better-auth/plugins";
 
 import { assertDatabaseConfigured, getPostgresPool } from "@/lib/database/postgres-pool";
 
@@ -67,6 +67,10 @@ export const auth = betterAuth({
       adminRoles: ["admin"],
       defaultRole: "user",
     }),
+    // Native client authentication (ADR 0013). The token issued on sign-in is
+    // the server-side session identifier, so revocation and expiry apply
+    // unchanged. Cookie sessions for the web interface are unaffected.
+    bearer(),
     nextCookies(),
   ],
   telemetry: {
