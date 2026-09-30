@@ -1,5 +1,19 @@
 # Sartoria Vision
 
+## Delivery platform
+
+**Sartoria is a native mobile application distributed through the Apple App Store.** It is not a web application, and a browser is not a supported delivery surface.
+
+This is a product requirement, not an implementation detail. A wardrobe is consulted while standing in front of one, while packing, and while deciding whether to buy something in a shop. Those moments happen on a phone, in the hand, often one-handed and often briefly. Every interface decision is judged at that size and in that posture.
+
+The practical consequences are binding:
+
+- an interface is designed for a phone screen first, and desktop width is not a design target;
+- a screen shows what is needed for the decision at hand and puts the rest behind a deliberate act. *Elegantia in Simplicitate* applies to how much is on a screen, not only to how it is typeset;
+- camera capture, offline tolerance, and App Store privacy obligations are product requirements rather than later refinements.
+
+The web application built through Phase 8 is a working reference for behaviour, retained until equivalent native screens exist. See ADR 0012.
+
 ## Product promise
 
 Sartoria turns a fragmented wardrobe into a coherent personal style system. It helps each user know what they own, understand what suits them, create confident outfits, identify genuine wardrobe gaps, and avoid purchases that add cost without adding value.
