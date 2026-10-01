@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { verifyBearerToken } from "@/lib/security/internal-token";
+import { generateCorrelationId } from "@/lib/observability/correlation-id";
+import { getOperationalEventEmitter } from "@/lib/observability/operational-event-runtime";
 import { processWardrobeMedia } from "@/modules/media/application/process-wardrobe-media";
 import {
   getMediaObjectStore,
@@ -33,6 +35,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     objectStore: getMediaObjectStore(),
     scanner: getMediaScanner(),
     now: () => new Date(),
+    emitter: getOperationalEventEmitter(),
+    correlationId: generateCorrelationId(),
   });
 
   return NextResponse.json(

@@ -268,6 +268,24 @@ npm --prefix ../.. run verify:staging
 
 The bootstrap endpoint must return HTTP 404 when disabled.
 
+## Operational observability
+
+The application emits one JSON object per line to stdout. See `docs/operations/observability.md` for the event catalogue and interpretation.
+
+Two variables in `staging.env` govern it:
+
+- `SARTORIA_OBSERVABILITY_SINK` selects the destination. The enumeration is closed: `console` or `none`. An unrecognised value falls back to `console`, never to a network destination.
+- `SARTORIA_RELEASE` **must be set to the deployed image tag at deploy time.** Leaving it empty silently drops the field from every event: `resolveRelease` returns `undefined` for anything failing `^[A-Za-z0-9._-]{1,64}$`, so a failure can no longer be correlated with a release. This is a silent degradation, not an error, so it will not be noticed unless checked.
+
+Confirm after starting the application:
+
+```bash
+docker compose --env-file staging.env logs app \
+  | grep '"name":"database.readiness.checked"' | tail -1
+```
+
+The line must contain a `release` field matching the deployed tag. If `release` is absent, `SARTORIA_RELEASE` was empty or malformed.
+
 ## Acceptance checklist
 
 Use both staging identities.

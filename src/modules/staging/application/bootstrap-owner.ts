@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 
+import type { OperationalEventEmitter } from "@/lib/observability/operational-event-emitter";
+
 export type BootstrapIdentityInput = Readonly<{
   name: string;
   email: string;
@@ -70,11 +72,27 @@ export async function bootstrapOwner(
     store: OwnerBootstrapStore;
     createAuthenticationUser: (input: BootstrapIdentityInput) => Promise<CreatedAuthenticationUser>;
     now: () => Date;
+    /**
+     * Required, so a composition root cannot leave this boundary dark by
+     * omission. Pass `NULL_OPERATIONAL_EVENT_EMITTER` to opt out deliberately.
+     */
+    emitter: OperationalEventEmitter;
+    /** Groups every event emitted by one bootstrap attempt. */
+    correlationId?: string;
   }>,
 ): Promise<BootstrapOwnerResult> {
+  const { emitter, correlationId } = dependencies;
   const owner = normalizeIdentity(input.owner);
   const isolationUser = normalizeIdentity(input.isolationUser);
   if (owner.email === isolationUser.email) {
+    emitter.emit({
+      name: "staging.identity.bootstrapped",
+      severity: "error",
+      outcome: "failure",
+      correlationId,
+      attributes: { identitiesCreated: 0, failureClassification: "validation" },
+    });
+
     throw new OwnerBootstrapValidationError(
       "Owner and isolation-test accounts must use different email addresses.",
     );
@@ -93,6 +111,14 @@ export async function bootstrapOwner(
   const createdOwner = await dependencies.createAuthenticationUser(owner);
   const createdIsolationUser = await dependencies.createAuthenticationUser(isolationUser);
   if (createdOwner.id === createdIsolationUser.id) {
+    emitter.emit({
+      name: "staging.identity.bootstrapped",
+      severity: "error",
+      outcome: "failure",
+      correlationId,
+      attributes: { identitiesCreated: 2, failureClassification: "conflict" },
+    });
+
     throw new OwnerBootstrapValidationError(
       "Authentication returned the same identifier for both staging identities.",
     );
@@ -103,6 +129,16 @@ export async function bootstrapOwner(
     ownerId: createdOwner.id,
     isolationUserId: createdIsolationUser.id,
     completedAt,
+  });
+
+  // Counts only: never an email, digest, identifier, password, token, or
+  // operator reference.
+  emitter.emit({
+    name: "staging.identity.bootstrapped",
+    severity: "info",
+    outcome: "success",
+    correlationId,
+    attributes: { identitiesCreated: 2, identitiesAlreadyPresent: 0 },
   });
 
   return Object.freeze({
